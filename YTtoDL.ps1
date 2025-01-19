@@ -43,7 +43,22 @@ function Get-YouTube {
     }
 }
 
-# Utilisation du script modifié
+
+Write-Host "
+
+
+██╗   ██╗████████╗████████╗ ██████╗       ██████╗ ██╗     
+╚██╗ ██╔╝╚══██╔══╝╚══██╔══╝██╔═══██╗      ██╔══██╗██║     
+ ╚████╔╝    ██║█████╗██║   ██║   ██║█████╗██║  ██║██║     
+  ╚██╔╝     ██║╚════╝██║   ██║   ██║╚════╝██║  ██║██║     
+   ██║      ██║      ██║   ╚██████╔╝      ██████╔╝███████╗
+   ╚═╝      ╚═╝      ╚═╝    ╚═════╝       ╚═════╝ ╚══════╝
+                                                          
+                                                                                                      
+"
+            Write-Host "A YTDownloader, by Pooueto"
+Write-Host "`n"
+
 $url = Read-Host "Entrez l'URL de la vidéo YouTube"
 $outputDirectory = Join-Path $env:USERPROFILE "Downloads"
 $format = Read-Host "Choisissez le format de téléchargement (MP3 ou MP4)"
