@@ -1,7 +1,7 @@
 # ========= AUTO-MISE À JOUR =========
-$LocalVersion = "1.3.0"
+$LocalVersion = "2.0.0"
 
-$RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebridFriendAPI_update.ps1"
+$RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebrid.ps1"
 
 try {
     $RemoteScript = Invoke-WebRequest -Uri $RemoteScriptUrl -UseBasicParsing
