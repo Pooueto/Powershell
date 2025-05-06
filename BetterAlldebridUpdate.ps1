@@ -1,8 +1,7 @@
 # Script PowerShell pour Alldebrid - Version prête à l'emploi
 # ----------------------------------------------
 # Version du script
-$scriptVersion = "1.1.0" # <<< Ajoutez ou modifiez cette ligne avec la version actuelle
-Write-Host "test"
+$scriptVersion = "1.2.0" # <<< Ajoutez ou modifiez cette ligne avec la version actuelle
 # URL du script sur GitHub (pour les mises à jour)
 $githubRawUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/main/BetterAlldebridFriendAPI.ps1"
 
@@ -1361,7 +1360,7 @@ function Show-Menu {
     Write-Centered "██║  ██║███████╗███████╗██████╔╝███████╗██████╔╝██║  ██║██║██████╔╝"
     Write-Centered "╚═╝  ╚═╝╚══════╝╚══════╝╚═════╝ ╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝ "
 
-    Write-Centered "===== Alldebrid PowerShell Downloader =====" -ForegroundColor Cyan
+    Write-Centered "===== Alldebrid PowerShell Downloader test =====" -ForegroundColor Cyan
 
     # Vérifier l'API au lancement
     <#$apiValid = Test-ApiValidity
