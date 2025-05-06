@@ -1,6 +1,19 @@
 # Script PowerShell pour Alldebrid - Version prête à l'emploi
 # ----------------------------------------------
 
+
+# Script PowerShell pour Alldebrid - Version prête à l'emploi
+# ----------------------------------------------
+
+# ===== Gestion des mises à jour =====
+$scriptVersion = "1.0" # <--- Définissez ici la version actuelle du script
+$repoUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebridFriendAPI.ps1"
+# ====================================
+
+# ========= CONFIGURATION PRÉDÉFINIE =========
+# Entrez votre clé API ici
+$predefinedApiKey = "geH6Zqg4EDxrYxBt5bLl"
+# ... (le reste de votre configuration)
 # ========= CONFIGURATION PRÉDÉFINIE =========
 # Entrez votre clé API ici 
 $predefinedApiKey = "geH6Zqg4EDxrYxBt5bLl"
@@ -26,6 +39,69 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Web
 Add-Type -AssemblyName System.Drawing
 
+
+function Check-ForUpdate {
+    param (
+        [string]$CurrentVersion,
+        [string]$RepositoryUrl
+    )
+
+    Write-Host "Vérification des mises à jour..." -ForegroundColor Cyan
+
+    try {
+        # Télécharger le contenu du script distant
+        $remoteScriptContent = Invoke-WebRequest -Uri $RepositoryUrl -UseBasicParsing -ErrorAction Stop
+
+        # Extraire la version du script distant (en cherchant la ligne $scriptVersion = "...")
+        $remoteVersionLine = $remoteScriptContent.Content | Select-String -Pattern '^\$scriptVersion\s*=\s*"(.+)"' | Select-Object -First 1
+        
+        if ($null -ne $remoteVersionLine) {
+            $remoteVersion = $remoteVersionLine.Matches[0].Groups[1].Value
+            Write-Host "Version locale: $CurrentVersion, Version distante: $remoteVersion"
+
+            # Comparer les versions (vous pouvez utiliser une comparaison simple de chaînes ou une logique plus complexe si vos versions sont plus élaborées)
+            if ($remoteVersion -gt $CurrentVersion) {
+                Write-Host "Nouvelle version disponible ($remoteVersion). Téléchargement de la mise à jour..." -ForegroundColor Green
+
+                # Déterminer le chemin du script actuel
+                $scriptPath = $MyInvocation.MyCommand.Definition
+
+                # Sauvegarder l'ancienne version (optionnel mais recommandé)
+                $backupPath = "$scriptPath.bak"
+                Move-Item -Path $scriptPath -Destination $backupPath -Force -ErrorAction SilentlyContinue
+                Write-Host "Ancienne version sauvegardée en $backupPath"
+
+                # Télécharger et sauvegarder la nouvelle version
+                $remoteScriptContent.Content | Set-Content -Path $scriptPath -Encoding Utf8 -ErrorAction Stop
+                Write-Host "Mise à jour téléchargée avec succès." -ForegroundColor Green
+
+                # Proposer de redémarrer le script
+                $restartChoice = Read-Host "La mise à jour a été installée. Voulez-vous redémarrer le script maintenant pour utiliser la nouvelle version ? (O/N)"
+                if ($restartChoice -ceq 'O') {
+                    Write-Host "Redémarrage du script..."
+                    # Démarrer une nouvelle instance du script et quitter l'actuelle
+                    Start-Process powershell.exe -ArgumentList "-NoProfile -File `"$scriptPath`""
+                    Exit # Quitter le script actuel
+                } else {
+                    Write-Host "Veuillez redémarrer le script manuellement pour appliquer la mise à jour."
+                    # Le script continuera de s'exécuter avec l'ancienne version jusqu'à ce qu'il soit redémarré.
+                }
+
+            } elseif ($remoteVersion -eq $CurrentVersion) {
+                Write-Host "Votre script est à jour." -ForegroundColor Green
+            } else {
+                 Write-Host "Votre script semble être plus récent que la version du dépôt." -ForegroundColor Yellow
+                 Write-Host "Version locale: $CurrentVersion, Version distante: $remoteVersion"
+            }
+        } else {
+            Write-Host "Impossible de trouver la variable de version dans le script distant." -ForegroundColor Yellow
+        }
+
+    } catch {
+        Write-Host "Une erreur est survenue lors de la vérification ou du téléchargement de la mise à jour: $($_.Exception.Message)" -ForegroundColor Red
+        # En cas d'erreur, le script continue de s'exécuter avec la version actuelle
+    }
+}
 # Fonction pour sélectionner un dossier avec une fenêtre de dialogue
 function Select-Folder {
     param (
@@ -1502,6 +1578,8 @@ function Show-Menu {
 }
 
 # ===== DÉMARRAGE DU SCRIPT =====
+
+Check-ForUpdate -CurrentVersion $scriptVersion -RepositoryUrl $repoUrl
 
 # Initialisation de la configuration
 Initialize-Config
