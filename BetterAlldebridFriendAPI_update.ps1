@@ -1,5 +1,5 @@
 # ========= AUTO-MISE À JOUR =========
-$LocalVersion = "1.1.0"
+$LocalVersion = "1.2.0"
 
 $RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebridFriendAPI_update.ps1"
 
@@ -1320,7 +1320,7 @@ function Show-Menu {
     Write-Centered "██║  ██║███████╗███████╗██████╔╝███████╗██████╔╝██║  ██║██║██████╔╝"
     Write-Centered "╚═╝  ╚═╝╚══════╝╚══════╝╚═════╝ ╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝ "
 
-    Write-Centered "===== Alldebrid PowerShell Downloader test =====" -ForegroundColor Cyan
+    Write-Centered "===== Alldebrid PowerShell Downloader blyat =====" -ForegroundColor Cyan
     
     # Vérifier l'API au lancement
     <#$apiValid = Test-ApiValidity
