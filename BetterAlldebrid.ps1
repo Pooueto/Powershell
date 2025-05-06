@@ -1,9 +1,33 @@
+# ========= AUTO-MISE À JOUR =========
+$LocalVersion = "1.3.0"
+
+$RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebridFriendAPI_update.ps1"
+
+try {
+    $RemoteScript = Invoke-WebRequest -Uri $RemoteScriptUrl -UseBasicParsing
+    if ($RemoteScript.StatusCode -eq 200) {
+        if ($RemoteScript.Content -match '\$LocalVersion\s*=\s*\"([^\"]+)\"') {
+            $RemoteVersion = $matches[1]
+            if ([version]$RemoteVersion -gt [version]$LocalVersion) {
+                Write-Host "Nouvelle version disponible ($RemoteVersion), mise à jour en cours..."
+                Copy-Item -Path $MyInvocation.MyCommand.Definition -Destination "$env:TEMP\BetterAlldebridFriendAPI_backup.ps1"
+                $RemoteScript.Content | Out-File -Encoding UTF8 -FilePath $MyInvocation.MyCommand.Definition -Force
+                Write-Host "Mise à jour terminée. Relance du script..."
+                Start-Process -FilePath "powershell" -ArgumentList "-ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Definition)`"" -WindowStyle Hidden
+                exit
+            }
+        }
+    }
+} catch {
+    Write-Warning "Impossible de vérifier la version distante : $_"
+}
+
 # Script PowerShell pour Alldebrid - Version prête à l'emploi
 # ----------------------------------------------
 
 # ========= CONFIGURATION PRÉDÉFINIE =========
 # Entrez votre clé API ici 
-$predefinedApiKey = "xFtbwg0wRYTcx6umhLOX"
+$predefinedApiKey = "geH6Zqg4EDxrYxBt5bLl"
 
 # Au début du script
 $currentProcess = [System.Diagnostics.Process]::GetCurrentProcess()
