@@ -5,6 +5,14 @@
 # Entrez votre clé API ici 
 $predefinedApiKey = "xFtbwg0wRYTcx6umhLOX"
 
+# Au début du script
+$currentProcess = [System.Diagnostics.Process]::GetCurrentProcess()
+$currentProcess.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::AboveNormal
+
+[System.Net.ServicePointManager]::DefaultConnectionLimit = 20
+[System.Net.ServicePointManager]::Expect100Continue = $false
+[System.Net.ServicePointManager]::UseNagleAlgorithm = $false
+
 # Nombre maximal de tentatives en cas d'échec de téléchargement
 $maxRetries = 3
 
@@ -131,6 +139,45 @@ function Write-Log {
     }
 }
 
+function Get-AlldebridHistory {
+    param (
+        [string]$ApiKey = $predefinedApiKey, # Use the predefined API key from your script
+        [string]$Agent = $userAgent # Use the predefined agent from your script
+    )
+
+    Write-Log "Récupération de l'historique des liens débridés..."
+
+    $apiUrl = "https://api.alldebrid.com/v4/user/history?agent=$Agent&apikey=$ApiKey"
+
+    try {
+        $response = Invoke-RestMethod -Uri $apiUrl -Method Get
+
+        if ($response.status -eq "success") {
+            Write-Log "Historique récupéré avec succès."
+            
+            if ($response.data.links -and $response.data.links.Count -gt 0) {
+                Write-Host "`n===== Historique des liens débridés =====" -ForegroundColor Cyan
+                foreach ($linkEntry in $response.data.links) {
+                    Write-Host "Lien original: $($linkEntry.link)"
+                    Write-Host "Lien débridé: $($linkEntry.unlockedLink)"
+                    Write-Host "Nom du fichier: $($linkEntry.filename)"
+                    Write-Host "Date: $($linkEntry.addedDate)"
+                    Write-Host "-------------------------------------"
+                }
+                 Write-Host "===== Fin de l'historique =====" -ForegroundColor Cyan
+            } else {
+                Write-Host "Aucun lien débridé trouvé dans l'historique." -ForegroundColor Yellow
+            }
+
+        } else {
+            Write-Log "Erreur lors de la récupération de l'historique: $($response.error.message)"
+             Write-Host "Erreur lors de la récupération de l'historique: $($response.error.message)" -ForegroundColor Red
+        }
+    } catch {
+        Write-Log "Exception lors de l'appel à l'API pour l'historique: $_"
+        Write-Host "Une erreur est survenue lors de la récupération de l'historique." -ForegroundColor Red
+    }
+}
 # Fonction pour débloquer un lien via l'API Alldebrid
 function Unlock-AlldebridLink {
     param (
@@ -196,10 +243,23 @@ function Download-File {
                 Write-Log "Reprise du téléchargement à partir de $startPosition bytes"
             }
             
+            # Configuration optimisée des requêtes web
             $webRequest = [System.Net.HttpWebRequest]::Create($Url)
             $webRequest.Headers.Add("Range", "bytes=$startPosition-")
             $webRequest.Method = "GET"
             $webRequest.UserAgent = $userAgent
+            
+            # Optimisations pour la vitesse
+            $webRequest.KeepAlive = $true
+            $webRequest.Pipelined = $true
+            $webRequest.AllowAutoRedirect = $true
+            $webRequest.AutomaticDecompression = [System.Net.DecompressionMethods]::GZip -bor [System.Net.DecompressionMethods]::Deflate
+            $webRequest.Timeout = 30000 # 30 secondes
+            $webRequest.ReadWriteTimeout = 300000 # 5 minutes
+            
+            # Augmenter le nombre maximum de connexions concurrentes vers un même serveur
+            [System.Net.ServicePointManager]::DefaultConnectionLimit = 10
+            [System.Net.ServicePointManager]::Expect100Continue = $false
             
             $response = $webRequest.GetResponse()
             $totalLength = $response.ContentLength + $startPosition
@@ -208,12 +268,13 @@ function Download-File {
             $mode = if ($startPosition -gt 0) { "Append" } else { "Create" }
             $fileStream = New-Object IO.FileStream($tempFilePath, $mode)
             
-            # Paramètres pour le téléchargement et l'affichage de la progression
-            $buffer = New-Object byte[] 10MB
+            # Augmenter la taille du buffer pour de meilleures performances
+            $buffer = New-Object byte[] 16MB
             $totalBytesRead = $startPosition
             $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
             $lastUpdateTime = Get-Date
             $lastBytesRead = $totalBytesRead
+            $updateInterval = 2 # Mettre à jour l'affichage toutes les 2 secondes au lieu de chaque seconde
             
             # Boucle de téléchargement
             while ($true) {
@@ -226,11 +287,11 @@ function Download-File {
                 $fileStream.Write($buffer, 0, $bytesRead)
                 $totalBytesRead += $bytesRead
                 
-                # Mise à jour de la progression toutes les secondes
+                # Mise à jour de la progression moins fréquemment
                 $currentTime = Get-Date
                 $elapsedSeconds = ($currentTime - $lastUpdateTime).TotalSeconds
                 
-                if ($elapsedSeconds -ge 1) {
+                if ($elapsedSeconds -ge $updateInterval) {
                     $percentComplete = [math]::Round(($totalBytesRead / $totalLength) * 100, 2)
                     $speed = [math]::Round(($totalBytesRead - $lastBytesRead) / $elapsedSeconds / 1MB, 2)
                     $remainingBytes = $totalLength - $totalBytesRead
@@ -254,6 +315,7 @@ function Download-File {
             }
             
             # Finalisation du téléchargement
+            $fileStream.Flush()
             $fileStream.Close()
             $responseStream.Close()
             $response.Close()
@@ -1207,6 +1269,7 @@ function Show-Menu {
     Write-Host "5. Modifier le dossier de téléchargement"
     Write-Host "6. Lire directement avec VLC (streaming)"
     Write-Host "7. Gestionnaire de torrents"
+    Write-Host "8. Afficher l'historique des liens débridés"
     Write-Host "Q. Quitter"
     Write-Host "========================================"
     Write-Host "Dossier de téléchargement actuel: $script:currentDownloadFolder" -ForegroundColor Yellow
@@ -1288,6 +1351,11 @@ function Show-Menu {
         "7" {
             # Nouvelle option pour le gestionnaire de torrents
             Show-TorrentManager
+            Show-Menu
+        }
+        "8" {
+            Get-AlldebridHistory
+            Pause
             Show-Menu
         }
         
