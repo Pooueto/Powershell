@@ -6,7 +6,7 @@
 # ----------------------------------------------
 
 # ===== Gestion des mises à jour =====
-$scriptVersion = "1.0" # <--- Définissez ici la version actuelle du script
+$scriptVersion = "1.1" # <--- Définissez ici la version actuelle du script
 $repoUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebridFriendAPI.ps1"
 # ====================================
 
@@ -1372,7 +1372,7 @@ function Show-Menu {
     Write-Centered "██║  ██║███████╗███████╗██████╔╝███████╗██████╔╝██║  ██║██║██████╔╝"
     Write-Centered "╚═╝  ╚═╝╚══════╝╚══════╝╚═════╝ ╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝ "
 
-    Write-Centered "===== Alldebrid PowerShell Downloader =====" -ForegroundColor Cyan
+    Write-Centered "===== Alldebrid PowerShell Downloader test =====" -ForegroundColor Cyan
     
     # Vérifier l'API au lancement
     <#$apiValid = Test-ApiValidity
