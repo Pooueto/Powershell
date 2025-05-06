@@ -1378,7 +1378,7 @@ function Show-Menu {
     Write-Centered "██║  ██║███████╗███████╗██████╔╝███████╗██████╔╝██║  ██║██║██████╔╝"
     Write-Centered "╚═╝  ╚═╝╚══════╝╚══════╝╚═════╝ ╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝ "
 
-    Write-Centered "===== Alldebrid PowerShell Downloader TEST test =====" -ForegroundColor Cyan
+    Write-Centered "===== Alldebrid PowerShell Downloader TEST  =====" -ForegroundColor Cyan
     
     # Vérifier l'API au lancement
     <#$apiValid = Test-ApiValidity
