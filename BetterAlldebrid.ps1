@@ -1229,6 +1229,51 @@ function Remove-InvalidFileNameChars {
     $re = "[{0}]" -f [RegEx]::Escape($invalidChars)
     return ($Name -replace $re, '_')
 }
+
+function Set-DesktopWallpaper {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$ImagePath
+    )
+
+    # Vérifier si le fichier image existe
+    if (-not (Test-Path -Path $ImagePath -PathType Leaf)) {
+        Write-Log "Erreur: Le fichier image spécifié '$ImagePath' est introuvable." -NoConsole
+        Write-Host "Erreur: Le fichier image spécifié est introuvable." -ForegroundColor Red
+        return
+    }
+
+    # Chemin de la clé de registre pour le fond d'écran
+    $regKey = "HKCU:\Control Panel\Desktop"
+
+    try {
+        # Définir la valeur du registre pour le fond d'écran
+        Set-ItemProperty -Path $regKey -Name WallPaper -Value $ImagePath
+
+        # Optionnel: Définir le style du fond d'écran (Tile, Center, Stretch, Fit, Fill)
+        # 0: Tile, 1: Center, 2: Stretch, 6: Fit, 10: Fill
+        # On règle sur 2 pour "Stretch" (Full) comme demandé
+        Set-ItemProperty -Path $regKey -Name WallpaperStyle -Value 2 # Stretch
+        Set-ItemProperty -Path $regKey -Name TileWallpaper -Value 0 # Ne pas mosaïquer
+
+        # Rafraîchir le bureau pour appliquer le changement immédiatement
+        # Correction : Changer le nom de la classe pour éviter le conflit
+        $code = '[DllImport("user32.dll", SetLastError = true)] public static extern int SystemParametersInfo(int uiAction, int uiParam, string pvParam, int fWinIni);'
+        $type = Add-Type -MemberDefinition $code -Name WinAPICalls -Namespace UIRefresh -PassThru # Changed Name to WinAPICalls
+
+        $SPI_SETDESKWALLPAPER = 0x14
+        $SPIF_UPDATEINIFILE = 0x01
+        $SPIF_SENDCHANGE = 0x02
+
+        # Appeler la méthode en utilisant le nouveau nom de classe
+        $type::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $ImagePath, $SPIF_UPDATEINIFILE -bor $SPIF_SENDCHANGE)
+
+        Write-Log "Fond d'écran changé avec succès pour: $ImagePath" -NoConsole
+    } catch {
+        Write-Log "Erreur lors du changement du fond d'écran: $_" -NoConsole
+        Write-Host "Une erreur est survenue lors du changement du fond d'écran." -ForegroundColor Red
+    }
+}
 function Write-Centered {
     param(
         [string]$Message
@@ -1275,7 +1320,7 @@ function Show-Menu {
     Write-Host "Dossier de téléchargement actuel: $script:currentDownloadFolder" -ForegroundColor Yellow
     Write-Host "========================================"
     
-    $choice = Read-Host "Choisissez une option (1-7 Or Q)"
+    $choice = Read-Host "Choisissez une option (1-8 Or Q)"
     
     switch ($choice) {
         "1" {
@@ -1376,6 +1421,72 @@ function Show-Menu {
 
         # Lire le MP3 avec Windows Media Player
         Start-Process -FilePath "wmplayer.exe" -ArgumentList $anthemPath
+
+
+        $wallpaperUrl = "https://raw.githubusercontent.com/Pooueto/blyatAnthem/main/Flag_of_the_Soviet_Union.png"
+            $wallpaperFileName = $wallpaperUrl.Split('/')[-1] # Extrait le nom de fichier de l'URL
+            $wallpaperPath = Join-Path $env:TEMP $wallpaperFileName
+
+            try {
+                Invoke-WebRequest -Uri $wallpaperUrl -OutFile $wallpaperPath
+                Set-DesktopWallpaper -ImagePath $wallpaperPath
+
+            } catch {
+                Write-Host "Erreur lors du téléchargement ou de la configuration du fond d'écran: $_" -ForegroundColor Red
+            }
+
+            $Host.UI.RawUI.WindowTitle = "☭ Gloire à la mère patrie ! ☭"
+            Write-Host "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                  ⢀⣀⣀⣀⣤⣤⣴⣶⣶⣶⣶⣶⣶⣶⣤⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣤⣴⣶⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣀⣴⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⡀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢠⣿⣿⣿⣿⣿⡏⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠋⠉⣠⡿⢻⣿⡿⢿⣿⠟⠙⣿⣙⣿⣿⣿⣿⣿⣿⣿⣿⣷⡄⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢸⡿⣿⢻⠏⠻⠁⢸⠛⣿⣿⣿⣿⣿⣿⣿⣿⡏⣴⣠⣾⣯⣽⡶⠀⣤⠘⢁⣀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣄⠀⠀⠀⠀⠀
+⠀⠀⠀⢸⣧⡀⠀⠀⠀⢠⣿⣦⣽⣻⢻⣿⢹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣾⡿⢣⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠀
+⠀⠀⠀⣾⣟⠃⠀⠀⠘⣿⣟⣿⣿⣿⣾⣿⢸⣿⣿⣿⠛⠛⢿⣿⣿⡿⠿⠋⠀⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡄⠀⠀⠀
+⠀⠀⠀⣿⣿⣿⠆⠀⠀⠙⠙⠿⠟⠉⠟⠁⠙⠋⠈⠀⠀⠀⠈⠁⠀⠀⠀⠀⠀⠈⠁⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+⠀⠀⠀⢹⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+⠀⠀⠀⠠⢯⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+⠀⠀⠀⠀⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⢬⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+⠀⠀⠀⠘⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+⠀⠀⢀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣬⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+⠀⠀⢸⣿⣿⣷⣄⡀⠀⠀⠀⠀⠀⠀⢀⣠⣤⣴⣶⣿⣿⣷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠉⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+⠀⠀⠈⢇⣀⣙⣻⣿⣷⡆⠀⠀⠀⠚⠻⣿⣭⡀⠀⠀⠀⠈⠙⠿⣷⣤⠀⠀⠀⠀⠀⠀⠀⢲⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠇⠀⠀⠀
+⠀⠀⠀⠸⣿⣿⣿⣿⣿⡟⠀⠀⠀⠀⠀⣼⣿⣿⣿⣷⡶⢤⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⠿⠛⠉⠉⠉⠻⣿⣿⡿⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢸⣿⡿⠁⠀⠀⠀⠀⠀⠀⢹⣿⣿⠋⠁⠀⠀⠙⢦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⢻⡿⠁⠀⠀⣴⡇⠙⣦⢸⣿⠇⠀⠀⠀⠀
+⠀⠀⠀⠀⢀⣠⣾⣿⠃⠀⠀⠀⠀⠀⠀⠀⠈⠉⠻⠷⠶⠆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⣼⣁⠀⠀⢸⢸⡏⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢸⣿⣿⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠋⢻⣿⠀⠟⢸⠃⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢉⡏⠀⠀⠀⠀⠀⠀⠀⠀⢠⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⣡⣿⠁⢀⡎⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⣾⡇⠀⠀⠀⠀⢀⣀⢀⣀⡀⢻⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⠒⠒⠉⠁⠀⡼⠁⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢸⣿⣿⣦⣶⣦⣀⡈⠉⠉⠉⠀⠀⠙⢿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡼⠁⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢈⣿⣿⣿⣿⣿⣿⣿⣿⣶⣄⣀⡀⠀⠀⠙⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣇⠀⠀⣠⡞⠁⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⠿⠖⠚⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠉⢻⣿⣿⡿⠿⠛⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢻⣿⣤⣶⣾⣿⣿⣭⡙⠛⠛⠿⠿⣿⣿⣿⣿⣿⡿⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⠿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠘⣿⡛⠛⠙⠛⠛⠛⠻⠷⠀⠀⠀⠀⠀⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⣴⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠹⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠑⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿⣿⣿⣿⣦⡀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣶⣶⣤⣤⣤⣄⣀⣠⣤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣠⣿⣿⣿⣿⣿⣿⣿⣿⣟⣛⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⡄
+⠀⠀⠀⠀⠀⠀⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇
+⠀⠀⣀⣤⣴⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠛⢿⣿⣿⣿⣦⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇
+⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣄⠙⠛⠻⢿⠟⠓⠀⠀⢀⣤⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇
+⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣤⣀⠀⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡃
+⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠁
+⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀
+⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀
+⠈⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡃
+⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇
+⠀⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠇" -ForegroundColor Red
+
+
+            [System.Windows.Forms.MessageBox]::Show("Camarade, your downloads will be glorious!, For the Motherland!")
+
+            Pause
+            Show-Menu
+        
         }
         
         "Q" {
