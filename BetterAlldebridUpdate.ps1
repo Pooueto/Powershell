@@ -1,8 +1,8 @@
 # Script PowerShell pour Alldebrid - Version prête à l'emploi
 # ----------------------------------------------
 # Version du script
-$scriptVersion = "1.0.0" # <<< Ajoutez ou modifiez cette ligne avec la version actuelle
-
+$scriptVersion = "1.1.0" # <<< Ajoutez ou modifiez cette ligne avec la version actuelle
+Write-Host "test"
 # URL du script sur GitHub (pour les mises à jour)
 $githubRawUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/main/BetterAlldebridFriendAPI.ps1"
 
