@@ -26,7 +26,7 @@ try {
 # ----------------------------------------------
 
 # ========= CONFIGURATION PRÉDÉFINIE =========
-# Entrez votre clé API ici 
+# Entrez votre clé API ici
 $predefinedApiKey = "geH6Zqg4EDxrYxBt5bLl"
 
 # Au début du script
@@ -56,12 +56,12 @@ function Select-Folder {
         [string]$Description = "Sélectionnez un dossier de destination",
         [string]$InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
     )
-    
+
     $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
     $folderBrowser.Description = $Description
     $folderBrowser.RootFolder = [System.Environment+SpecialFolder]::MyComputer
     $folderBrowser.SelectedPath = $InitialDirectory
-    
+
     if ($folderBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         return $folderBrowser.SelectedPath
     }
@@ -78,12 +78,12 @@ function Initialize-Config {
     if (-not $scriptPath) {
         $scriptPath = [Environment]::GetFolderPath('MyDocuments')
     }
-    
+
     # Définir un fichier de log unique dans le même dossier que le script
     $script:logFile = Join-Path -Path $scriptPath -ChildPath "alldebrid_log.txt"
-    
+
     $script:configFilePath = Join-Path -Path $scriptPath -ChildPath "AlldebridDownloader.config"
-    
+
     # Charger la configuration existante ou créer une nouvelle
     if (Test-Path -Path $script:configFilePath) {
         try {
@@ -105,18 +105,18 @@ function Create-DefaultConfig {
     # Définir des chemins par défaut
     $defaultDownloadFolder = Join-Path -Path ([Environment]::GetFolderPath('MyDocuments')) -ChildPath "AlldebridDownloads"
     $script:currentDownloadFolder = $defaultDownloadFolder
-    
+
     # Créer la configuration par défaut
     $config = @{
         DownloadFolder = $defaultDownloadFolder
         # Ne pas stocker le chemin du log dans la config
     }
-    
+
     # S'assurer que le dossier existe
     if (-not (Test-Path -Path $defaultDownloadFolder)) {
         New-Item -ItemType Directory -Path $defaultDownloadFolder -Force | Out-Null
     }
-    
+
     # Enregistrer la configuration
     $config | ConvertTo-Json | Set-Content -Path $script:configFilePath
 }
@@ -127,7 +127,7 @@ function Save-Config {
         DownloadFolder = $script:currentDownloadFolder
         # Ne pas stocker le chemin du log dans la config
     }
-    
+
     # Enregistrer la configuration
     $config | ConvertTo-Json | Set-Content -Path $script:configFilePath
 }
@@ -138,7 +138,7 @@ function Initialize-Environment {
         New-Item -ItemType Directory -Path $script:currentDownloadFolder -Force | Out-Null
         Write-Host "Dossier de téléchargement créé: $script:currentDownloadFolder" -ForegroundColor Green
     }
-    
+
     $logDirectory = Split-Path -Path $script:logFile -Parent
     if (-not (Test-Path -Path $logDirectory)) {
         New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
@@ -152,12 +152,12 @@ function Write-Log {
         [string]$Message,
         [switch]$NoConsole
     )
-    
+
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    
+
     # Ajouter au fichier de log (crée le fichier s'il n'existe pas)
     "$timestamp - $Message" | Out-File -FilePath $script:logFile -Append
-    
+
     if (-not $NoConsole) {
         Write-Host $Message
     }
@@ -178,7 +178,7 @@ function Get-AlldebridHistory {
 
         if ($response.status -eq "success") {
             Write-Log "Historique récupéré avec succès."
-            
+
             if ($response.data.links -and $response.data.links.Count -gt 0) {
                 Write-Host "`n===== Historique des liens débridés =====" -ForegroundColor Cyan
                 foreach ($linkEntry in $response.data.links) {
@@ -207,15 +207,15 @@ function Unlock-AlldebridLink {
     param (
         [string]$Link
     )
-    
+
     Write-Log "Décodage du lien: $Link"
     $encodedLink = [System.Web.HttpUtility]::UrlEncode($Link)
-    
+
     $apiUrl = "https://api.alldebrid.com/v4/link/unlock?agent=$userAgent&apikey=$predefinedApiKey&link=$encodedLink"
-    
+
     try {
         $response = Invoke-RestMethod -Uri $apiUrl -Method Get
-        
+
         if ($response.status -eq "success") {
             Write-Log "Lien décodé avec succès"
             return $response.data
@@ -236,10 +236,10 @@ function Download-File {
         [string]$FileName,
         [string]$Destination
     )
-    
+
     $filePath = Join-Path -Path $Destination -ChildPath $FileName
     $tempFilePath = "$filePath.tmp"
-    
+
     # Vérification si le fichier existe déjà
     if (Test-Path -Path $filePath) {
         Write-Log "Le fichier '$FileName' existe déjà."
@@ -249,16 +249,16 @@ function Download-File {
             return $false
         }
     }
-    
+
     $retryCount = 0
     $downloadSuccess = $false
-    
+
     while (-not $downloadSuccess -and $retryCount -lt $maxRetries) {
         try {
             if ($retryCount -gt 0) {
                 Write-Log "Tentative $($retryCount + 1)/$maxRetries..."
             }
-            
+
             # Vérifier si une reprise est possible
             $startPosition = 0
             if (Test-Path -Path $tempFilePath) {
@@ -266,13 +266,13 @@ function Download-File {
                 $startPosition = $existingFile.Length
                 Write-Log "Reprise du téléchargement à partir de $startPosition bytes"
             }
-            
+
             # Configuration optimisée des requêtes web
             $webRequest = [System.Net.HttpWebRequest]::Create($Url)
             $webRequest.Headers.Add("Range", "bytes=$startPosition-")
             $webRequest.Method = "GET"
             $webRequest.UserAgent = $userAgent
-            
+
             # Optimisations pour la vitesse
             $webRequest.KeepAlive = $true
             $webRequest.Pipelined = $true
@@ -280,18 +280,18 @@ function Download-File {
             $webRequest.AutomaticDecompression = [System.Net.DecompressionMethods]::GZip -bor [System.Net.DecompressionMethods]::Deflate
             $webRequest.Timeout = 30000 # 30 secondes
             $webRequest.ReadWriteTimeout = 300000 # 5 minutes
-            
+
             # Augmenter le nombre maximum de connexions concurrentes vers un même serveur
             [System.Net.ServicePointManager]::DefaultConnectionLimit = 10
             [System.Net.ServicePointManager]::Expect100Continue = $false
-            
+
             $response = $webRequest.GetResponse()
             $totalLength = $response.ContentLength + $startPosition
             $responseStream = $response.GetResponseStream()
-            
+
             $mode = if ($startPosition -gt 0) { "Append" } else { "Create" }
             $fileStream = New-Object IO.FileStream($tempFilePath, $mode)
-            
+
             # Augmenter la taille du buffer pour de meilleures performances
             $buffer = New-Object byte[] 16MB
             $totalBytesRead = $startPosition
@@ -299,27 +299,27 @@ function Download-File {
             $lastUpdateTime = Get-Date
             $lastBytesRead = $totalBytesRead
             $updateInterval = 2 # Mettre à jour l'affichage toutes les 2 secondes au lieu de chaque seconde
-            
+
             # Boucle de téléchargement
             while ($true) {
                 $bytesRead = $responseStream.Read($buffer, 0, $buffer.Length)
-                
+
                 if ($bytesRead -eq 0) {
                     break
                 }
-                
+
                 $fileStream.Write($buffer, 0, $bytesRead)
                 $totalBytesRead += $bytesRead
-                
+
                 # Mise à jour de la progression moins fréquemment
                 $currentTime = Get-Date
                 $elapsedSeconds = ($currentTime - $lastUpdateTime).TotalSeconds
-                
+
                 if ($elapsedSeconds -ge $updateInterval) {
                     $percentComplete = [math]::Round(($totalBytesRead / $totalLength) * 100, 2)
                     $speed = [math]::Round(($totalBytesRead - $lastBytesRead) / $elapsedSeconds / 1MB, 2)
                     $remainingBytes = $totalLength - $totalBytesRead
-                    
+
                     if ($speed -gt 0) {
                         $estimatedSeconds = $remainingBytes / ($speed * 1MB)
                         $timeRemaining = [TimeSpan]::FromSeconds($estimatedSeconds)
@@ -327,50 +327,50 @@ function Download-File {
                     } else {
                         $timeRemainingStr = "Calcul..."
                     }
-                    
+
                     Write-Progress -Activity "Téléchargement de $FileName" `
                         -Status "$percentComplete% Complet - $([math]::Round($totalBytesRead / 1MB, 2)) MB / $([math]::Round($totalLength / 1MB, 2)) MB (${speed} MB/s)" `
                         -PercentComplete $percentComplete `
                         -CurrentOperation "Temps restant estimé: $timeRemainingStr"
-                    
+
                     $lastUpdateTime = $currentTime
                     $lastBytesRead = $totalBytesRead
                 }
             }
-            
+
             # Finalisation du téléchargement
             $fileStream.Flush()
             $fileStream.Close()
             $responseStream.Close()
             $response.Close()
-            
+
             # Renommage du fichier temporaire
             Move-Item -Path $tempFilePath -Destination $filePath -Force
-            
+
             $totalTime = $stopwatch.Elapsed
             $averageSpeed = [math]::Round($totalLength / $totalTime.TotalSeconds / 1MB, 2)
-            
+
             Write-Progress -Activity "Téléchargement de $FileName" -Completed
             Write-Log "Téléchargement terminé: $FileName"
             Write-Log "Taille: $([math]::Round($totalLength / 1MB, 2)) MB | Temps: $($totalTime.ToString("hh\:mm\:ss")) | Vitesse moyenne: ${averageSpeed} MB/s"
-            
+
             $downloadSuccess = $true
         }
         catch {
             $retryCount++
             Write-Log "Erreur lors du téléchargement: $_"
-            
+
             if ($retryCount -ge $maxRetries) {
                 Write-Log "Nombre maximum de tentatives atteint. Téléchargement abandonné."
                 return $false
             }
-            
+
             $waitTime = [math]::Pow(2, $retryCount) # Attente exponentielle
             Write-Log "Nouvelle tentative dans $waitTime secondes..."
             Start-Sleep -Seconds $waitTime
         }
     }
-    
+
     return $downloadSuccess
 }
 
@@ -380,9 +380,9 @@ function Start-AlldebridDownload {
         [string[]]$Links,
         [string]$Category = ""
     )
-    
+
     Initialize-Environment
-    
+
     # Création d'un sous-dossier pour la catégorie si spécifiée
     $destinationFolder = $script:currentDownloadFolder
     if ($Category -ne "") {
@@ -392,34 +392,34 @@ function Start-AlldebridDownload {
             Write-Log "Dossier de catégorie créé: $destinationFolder"
         }
     }
-    
+
     $successCount = 0
     $failCount = 0
-    
+
     foreach ($link in $Links) {
         Write-Log "---------------------------------------------"
         Write-Log "Traitement du lien: $link"
-        
+
         $unlocked = Unlock-AlldebridLink -Link $link
-        
+
         if ($null -ne $unlocked) {
             $downloadLink = $unlocked.link
             $fileName = $unlocked.filename
-            
+
             # Si le nom de fichier est vide, en générer un basé sur l'URL
             if ([string]::IsNullOrEmpty($fileName)) {
                 $uri = New-Object System.Uri($downloadLink)
                 $fileName = [System.IO.Path]::GetFileName($uri.LocalPath)
-                
+
                 if ([string]::IsNullOrEmpty($fileName)) {
                     $fileName = "download_$(Get-Date -Format 'yyyyMMdd_HHmmss').bin"
                 }
             }
-            
+
             Write-Log "Lien direct obtenu pour: $fileName"
-            
+
             $success = Download-File -Url $downloadLink -FileName $fileName -Destination $destinationFolder
-            
+
             if ($success) {
                 $successCount++
             } else {
@@ -429,7 +429,7 @@ function Start-AlldebridDownload {
             $failCount++
         }
     }
-    
+
     Write-Log "---------------------------------------------"
     Write-Log "Résumé des téléchargements:"
     Write-Log "Réussis: $successCount | Échoués: $failCount | Total: $($Links.Count)"
@@ -439,21 +439,21 @@ function Start-AlldebridDownload {
 <#function Test-ApiValidity {
     # Vérification simple de l'API
     $apiUrl = "https://api.alldebrid.com/v4/user/login?agent=$userAgent&apikey=$predefinedApiKey"
-    
+
     try {
         $response = Invoke-RestMethod -Uri $apiUrl -Method Get
-        
+
         if ($response.status -eq "success") {
             Write-Host "✅ Connexion API Alldebrid réussie!" -ForegroundColor Green
             Write-Host "Nom d'utilisateur: $($response.data.user.username)" -ForegroundColor Cyan
-            
+
             if ($response.data.user.isPremium) {
                 Write-Host "Type de compte: Premium" -ForegroundColor Green
                 Write-Host "Expiration: $($response.data.user.premiumUntil)" -ForegroundColor Cyan
             } else {
                 Write-Host "Type de compte: Gratuit" -ForegroundColor Yellow
             }
-            
+
             return $true
         } else {
             Write-Host "❌ Erreur avec la clé API: $($response.error.message)" -ForegroundColor Red
@@ -473,14 +473,14 @@ function Show-DownloadDialog {
     $form.StartPosition = "CenterScreen"
     $form.FormBorderStyle = "FixedDialog"
     $form.MaximizeBox = $false
-    
+
     # Labels
     $labelLinks = New-Object System.Windows.Forms.Label
     $labelLinks.Location = New-Object System.Drawing.Point(20, 20)
     $labelLinks.Size = New-Object System.Drawing.Size(560, 20)
     $labelLinks.Text = "Collez vos liens (un par ligne):"
     $form.Controls.Add($labelLinks)
-    
+
     # Zone de texte multi-lignes pour les liens
     $textBoxLinks = New-Object System.Windows.Forms.TextBox
     $textBoxLinks.Location = New-Object System.Drawing.Point(20, 40)
@@ -488,20 +488,20 @@ function Show-DownloadDialog {
     $textBoxLinks.Multiline = $true
     $textBoxLinks.ScrollBars = "Vertical"
     $form.Controls.Add($textBoxLinks)
-    
+
     # Label pour la catégorie
     $labelCategory = New-Object System.Windows.Forms.Label
     $labelCategory.Location = New-Object System.Drawing.Point(20, 250)
     $labelCategory.Size = New-Object System.Drawing.Size(200, 20)
     $labelCategory.Text = "Catégorie (facultatif):"
     $form.Controls.Add($labelCategory)
-    
+
     # Textbox pour la catégorie
     $textBoxCategory = New-Object System.Windows.Forms.TextBox
     $textBoxCategory.Location = New-Object System.Drawing.Point(20, 270)
     $textBoxCategory.Size = New-Object System.Drawing.Size(200, 20)
     $form.Controls.Add($textBoxCategory)
-    
+
     # Bouton pour choisir le dossier
     $buttonFolder = New-Object System.Windows.Forms.Button
     $buttonFolder.Location = New-Object System.Drawing.Point(230, 270)
@@ -518,14 +518,14 @@ function Show-DownloadDialog {
         }
     })
     $form.Controls.Add($buttonFolder)
-    
+
     # Label pour afficher le dossier actuel
     $labelFolder = New-Object System.Windows.Forms.Label
     $labelFolder.Location = New-Object System.Drawing.Point(20, 300)
     $labelFolder.Size = New-Object System.Drawing.Size(560, 20)
     $labelFolder.Text = "Dossier: $script:currentDownloadFolder"
     $form.Controls.Add($labelFolder)
-    
+
     # Bouton de téléchargement
     $buttonDownload = New-Object System.Windows.Forms.Button
     $buttonDownload.Location = New-Object System.Drawing.Point(440, 270)
@@ -536,26 +536,26 @@ function Show-DownloadDialog {
     $buttonDownload.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
     $buttonDownload.Add_Click({
         $links = $textBoxLinks.Text -split "`r`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
-        
+
         if ($links.Count -eq 0) {
             [System.Windows.Forms.MessageBox]::Show("Veuillez entrer au moins un lien.", "Erreur", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
             return
         }
-        
+
         $form.Hide()
-        
+
         # Démarrer le téléchargement
         Start-AlldebridDownload -Links $links -Category $textBoxCategory.Text
-        
+
         [System.Windows.Forms.MessageBox]::Show("Opération terminée. Consultez les logs pour plus de détails.", "Téléchargement terminé", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-        
+
         $form.Close()
     })
     $form.Controls.Add($buttonDownload)
-    
+
     # Centrer la fenêtre
     $form.Add_Shown({$form.Activate()})
-    
+
     # Afficher la fenêtre
     $form.ShowDialog() | Out-Null
 }
@@ -566,13 +566,13 @@ function Find-VlcPath {
         "${env:ProgramFiles}\VideoLAN\VLC\vlc.exe",
         "${env:ProgramFiles(x86)}\VideoLAN\VLC\vlc.exe"
     )
-    
+
     foreach ($path in $possiblePaths) {
         if (Test-Path -Path $path) {
             return $path
         }
     }
-    
+
     return $null
 }
 
@@ -581,44 +581,44 @@ function Start-VlcStreaming {
     param (
         [string]$Link
     )
-    
+
     Write-Log "Préparation du streaming pour: $Link"
-    
+
     # Décoder le lien via l'API Alldebrid
     $unlocked = Unlock-AlldebridLink -Link $Link
-    
+
     if ($null -eq $unlocked) {
         Write-Log "Impossible de débloquer le lien pour le streaming."
         return $false
     }
-    
+
     $streamLink = $unlocked.link
     $fileName = $unlocked.filename
-    
+
     Write-Log "Lien direct obtenu pour streaming: $fileName"
-    
+
     # Trouver le chemin vers VLC
     $vlcPath = Find-VlcPath
-    
+
     if ($null -eq $vlcPath) {
         Write-Host "VLC n'a pas été trouvé sur votre système." -ForegroundColor Red
         Write-Host "Veuillez spécifier manuellement le chemin vers vlc.exe:" -ForegroundColor Yellow
         $vlcPath = Read-Host "Chemin vers vlc.exe"
-        
+
         if (-not (Test-Path -Path $vlcPath)) {
             Write-Log "Chemin VLC invalide. Streaming annulé."
             return $false
         }
     }
-    
+
     try {
         Write-Log "Lancement de VLC avec le lien streaming..."
         Write-Host "Lancement de la lecture avec VLC..." -ForegroundColor Green
         Write-Host "Titre: $fileName" -ForegroundColor Cyan
-        
+
         # Démarrer VLC avec le lien en paramètre
         Start-Process -FilePath $vlcPath -ArgumentList "--fullscreen `"$streamLink`"" -NoNewWindow
-        
+
         Write-Log "VLC démarré avec succès pour le streaming."
         return $true
     }
@@ -634,18 +634,18 @@ function Add-AlldebridTorrent {
         [Parameter(Mandatory=$true)]
         [string]$TorrentSource
     )
-    
+
     Write-Log "Ajout du torrent: $TorrentSource"
-    
+
     # Déterminer si c'est un magnet, une URL ou un fichier local
     if ($TorrentSource -match "^magnet:\?") {
         # C'est un lien magnet
         $encodedMagnet = [System.Web.HttpUtility]::UrlEncode($TorrentSource)
         $apiUrl = "https://api.alldebrid.com/v4/magnet/upload?agent=$userAgent&apikey=$predefinedApiKey&magnets[]=$encodedMagnet"
-        
+
         try {
             $response = Invoke-RestMethod -Uri $apiUrl -Method Get
-            
+
             if ($response.status -eq "success") {
                 Write-Log "Magnet ajouté avec succès"
                 return $response.data.magnets[0]
@@ -662,10 +662,10 @@ function Add-AlldebridTorrent {
         # C'est une URL de torrent
         $encodedUrl = [System.Web.HttpUtility]::UrlEncode($TorrentSource)
         $apiUrl = "https://api.alldebrid.com/v4/magnet/upload/url?agent=$userAgent&apikey=$predefinedApiKey&url=$encodedUrl"
-        
+
         try {
             $response = Invoke-RestMethod -Uri $apiUrl -Method Get
-            
+
             if ($response.status -eq "success") {
                 Write-Log "Torrent URL ajouté avec succès"
                 return $response.data.magnet
@@ -682,13 +682,13 @@ function Add-AlldebridTorrent {
         # On suppose que c'est un fichier local
         if (Test-Path -Path $TorrentSource) {
             $apiUrl = "https://api.alldebrid.com/v4/magnet/upload/file?agent=$userAgent&apikey=$predefinedApiKey"
-            
+
             try {
                 $fileBin = [System.IO.File]::ReadAllBytes($TorrentSource)
                 $fileEnc = [System.Text.Encoding]::GetEncoding("ISO-8859-1").GetString($fileBin)
                 $boundary = [System.Guid]::NewGuid().ToString()
                 $LF = "`r`n"
-                
+
                 $bodyLines = (
                     "--$boundary",
                     "Content-Disposition: form-data; name=`"file`"; filename=`"$(Split-Path -Leaf $TorrentSource)`"",
@@ -696,9 +696,9 @@ function Add-AlldebridTorrent {
                     $fileEnc,
                     "--$boundary--$LF"
                 ) -join $LF
-                
+
                 $response = Invoke-RestMethod -Uri $apiUrl -Method Post -ContentType "multipart/form-data; boundary=`"$boundary`"" -Body $bodyLines
-                
+
                 if ($response.status -eq "success") {
                     Write-Log "Fichier torrent ajouté avec succès"
                     return $response.data.magnets[0]
@@ -723,12 +723,12 @@ function Get-TorrentStatus {
         [Parameter(Mandatory=$true)]
         [string]$MagnetId
     )
-    
+
     $apiUrl = "https://api.alldebrid.com/v4/magnet/status?agent=$userAgent&apikey=$predefinedApiKey&id=$MagnetId"
-    
+
     try {
         $response = Invoke-RestMethod -Uri $apiUrl -Method Get
-        
+
         if ($response.status -eq "success") {
             return $response.data.magnets
         } else {
@@ -744,10 +744,10 @@ function Get-TorrentStatus {
 # Fonction pour lister tous les torrents
 function Get-AllTorrents {
     $apiUrl = "https://api.alldebrid.com/v4/magnet/status?agent=$userAgent&apikey=$predefinedApiKey"
-    
+
     try {
         $response = Invoke-RestMethod -Uri $apiUrl -Method Get
-        
+
         if ($response.status -eq "success") {
             return $response.data.magnets
         } else {
@@ -766,12 +766,12 @@ function Remove-Torrent {
         [Parameter(Mandatory=$true)]
         [string]$MagnetId
     )
-    
+
     $apiUrl = "https://api.alldebrid.com/v4/magnet/delete?agent=$userAgent&apikey=$predefinedApiKey&id=$MagnetId"
-    
+
     try {
         $response = Invoke-RestMethod -Uri $apiUrl -Method Get
-        
+
         if ($response.status -eq "success") {
             Write-Log "Torrent supprimé avec succès"
             return $true
@@ -789,23 +789,23 @@ function Remove-Torrent {
 function Show-TorrentManager {
     Clear-Host
     Write-Host "===== Gestionnaire de Torrents Alldebrid =====" -ForegroundColor Cyan
-    
+
     $torrents = Get-AllTorrents
-    
+
     #if ($null -eq $torrents) {
     #    Write-Host "Impossible de récupérer la liste des torrents." -ForegroundColor Red
     #    Pause
     #    return
     #}
-    
+
     if ($torrents.Count -eq 0) {
         Write-Host "Aucun torrent en cours." -ForegroundColor Yellow
         Write-Host ""
         Write-Host "1. Ajouter un nouveau torrent"
         Write-Host "R. Retour au menu principal"
-        
+
         $choice = Read-Host "Choisissez une option"
-        
+
         switch ($choice) {
             "1" { Show-AddTorrentDialog }
             "R" { return }
@@ -820,13 +820,13 @@ function Show-TorrentManager {
         Write-Host ""
         Write-Host "ID  | Statut       | Progression | Nom"
         Write-Host "----|--------------+------------+-------------------------"
-        
+
         $i = 1
         foreach ($torrent in $torrents) {
             $status = $torrent.status
             $progress = if ($torrent.processing) { "$($torrent.processing.progress)%" } else { "N/A" }
             $name = $torrent.filename
-            
+
             # Colorisation en fonction du statut
             $statusColor = switch ($status) {
                 "active" { "Yellow" }
@@ -835,15 +835,15 @@ function Show-TorrentManager {
                 "error" { "Red" }
                 default { "White" }
             }
-            
+
             Write-Host ("{0,3} | " -f $i) -NoNewline
             Write-Host ("{0,-12} | " -f $status) -ForegroundColor $statusColor -NoNewline
             Write-Host ("{0,10} | " -f $progress) -NoNewline
             Write-Host $name
-            
+
             $i++
         }
-        
+
         Write-Host ""
         Write-Host "1. Ajouter un nouveau torrent"
         Write-Host "2. Actualiser la liste"
@@ -852,13 +852,13 @@ function Show-TorrentManager {
         Write-Host "5. Supprimer un torrent"
         Write-Host "6. Changer le chemin de téléchargement du torrent"
         Write-Host "R. Retour au menu principal"
-        
+
         $choice = Read-Host "Choisissez une option"
-        
+
         switch ($choice) {
             "1" { Show-AddTorrentDialog; Show-TorrentManager }
             "2" { Show-TorrentManager }
-            "3" { 
+            "3" {
                 $torrentId = Read-Host "Entrez le numéro du torrent à afficher"
                 if ($torrentId -match "^\d+$" -and [int]$torrentId -gt 0 -and [int]$torrentId -le $torrents.Count) {
                     Show-TorrentDetails -Torrent $torrents[[int]$torrentId - 1]
@@ -902,18 +902,18 @@ function Show-TorrentManager {
             # Sélection du dossier de téléchargement avec Windows Forms
             Write-Host "Ouverture du sélecteur de dossier..." -ForegroundColor Cyan
             $selectedFolder = Select-Folder -Description "Choisissez le dossier de destination pour les téléchargements" -InitialDirectory $script:currentDownloadFolder
-            
+
             if ($selectedFolder) {
                 $script:currentDownloadFolder = $selectedFolder
                 # Ne pas modifier l'emplacement du fichier de log
                 Save-Config
                 Write-Host "Nouveau dossier de téléchargement défini: $script:currentDownloadFolder" -ForegroundColor Green
             }
-            
+
             Pause
             Show-TorrentManager
         }
-            
+
             "R" { return }
             default {
                 Write-Host "Option invalide." -ForegroundColor Red
@@ -931,9 +931,9 @@ function Show-AddTorrentDialog {
     Write-Host ""
     Write-Host "1. Ajouter par lien magnet"
     Write-Host "R. Retour"
-    
+
     $choice = Read-Host "Choisissez une option"
-    
+
     switch ($choice) {
         "1" {
             $magnet = Read-Host "Entrez le lien magnet"
@@ -963,16 +963,16 @@ function Show-TorrentDetails {
         [Parameter(Mandatory=$true)]
         [PSObject]$Torrent
     )
-    
+
     # Récupérer les informations à jour
     $updatedTorrent = Get-TorrentStatus -MagnetId $Torrent.id
-    
+
     if ($null -eq $updatedTorrent) {
         Write-Host "Impossible de récupérer les détails du torrent." -ForegroundColor Red
         Pause
         return
     }
-    
+
     Clear-Host
     Write-Host "===== Détails du Torrent =====" -ForegroundColor Cyan
     Write-Host ""
@@ -987,7 +987,7 @@ function Show-TorrentDetails {
             default { "White" }
         }
     )
-    
+
     if ($updatedTorrent.processing) {
         Write-Host "Progression: $($updatedTorrent.processing.progress)%"
         if ($updatedTorrent.processing.speed.bytes -gt 0) {
@@ -999,10 +999,10 @@ function Show-TorrentDetails {
             Write-Host "Temps restant: $($eta.ToString("hh\:mm\:ss"))"
         }
     }
-    
+
     Write-Host "Taille: $(Format-Size -Bytes $updatedTorrent.size.bytes)"
     Write-Host "Date d'ajout: $($updatedTorrent.uploadDate)"
-    
+
     # Afficher les fichiers si disponibles
     if ($updatedTorrent.links -and $updatedTorrent.links.Count -gt 0) {
         Write-Host ""
@@ -1021,7 +1021,7 @@ function Show-TorrentDetails {
             $i++
         }
     }
-    
+
     Write-Host ""
     Pause
 }
@@ -1032,22 +1032,22 @@ function Download-TorrentFiles {
         [Parameter(Mandatory=$true)]
         [PSObject]$Torrent
     )
-    
+
     # Récupérer les informations à jour
     $updatedTorrent = Get-TorrentStatus -MagnetId $Torrent.id
-    
+
     if ($null -eq $updatedTorrent) {
         Write-Host "Impossible de récupérer les détails du torrent." -ForegroundColor Red
         Pause
         return
     }
-    
+
     # Vérifier si le torrent est prêt à être téléchargé
     <# if ($updatedTorrent.status -ne "downloaded" -or $null -eq $updatedTorrent.links -or $updatedTorrent.links.Count -eq 0) {
         Write-Host "Ce torrent n'est pas encore prêt à être téléchargé." -ForegroundColor Yellow
         if ($updatedTorrent.status -eq "downloading") {
             Write-Host "Statut actuel: Téléchargement en cours ($($updatedTorrent.processing.progress)%)"
-            
+
             $waitForDownload = Read-Host "Voulez-vous attendre la fin du téléchargement? (O/N)"
             if ($waitForDownload -eq "O") {
                 Wait-ForTorrentCompletion -MagnetId $updatedTorrent.id
@@ -1062,46 +1062,46 @@ function Download-TorrentFiles {
             return
         }
     } #>
-    
+
     Clear-Host
     Write-Host "===== Téléchargement des fichiers du torrent =====" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Torrent: $($updatedTorrent.filename)"
     Write-Host "Fichiers disponibles:"
-    
+
     $i = 1
     foreach ($link in $updatedTorrent.links) {
         Write-Host "$i. $($link.filename) ($(Format-Size -Bytes $link.size))"
         $i++
     }
-    
+
     Write-Host ""
     Write-Host "Options:"
     Write-Host "1-$($updatedTorrent.links.Count): Télécharger un fichier spécifique"
     Write-Host "A. Télécharger tous les fichiers"
     Write-Host "R. Retour"
-    
+
     $choice = Read-Host "Choisissez une option"
-    
+
     if ($choice -eq "A") {
         # Créer un sous-dossier pour le torrent
         $torrentFolder = Join-Path -Path $script:currentDownloadFolder -ChildPath (Remove-InvalidFileNameChars -Name $updatedTorrent.filename)
         if (-not (Test-Path -Path $torrentFolder)) {
             New-Item -ItemType Directory -Path $torrentFolder | Out-Null
         }
-        
+
         # Télécharger tous les fichiers
         $links = @()
         foreach ($link in $updatedTorrent.links) {
             $links += $link.link
         }
-        
+
         Start-AlldebridDownload -Links $links -Category (Split-Path -Leaf $torrentFolder)
     }
     elseif ($choice -match "^\d+$" -and [int]$choice -gt 0 -and [int]$choice -le $updatedTorrent.links.Count) {
         $fileIndex = [int]$choice - 1
         $fileLink = $updatedTorrent.links[$fileIndex].link
-        
+
         Start-AlldebridDownload -Links @($fileLink)
     }
     elseif ($choice -eq "R") {
@@ -1120,18 +1120,18 @@ function Wait-ForTorrentInitialization {
         [Parameter(Mandatory=$true)]
         [string]$MagnetId
     )
-    
+
     Write-Host "Attente de l'initialisation du torrent..." -ForegroundColor Cyan
-    
+
     $retry = 0
     $maxRetry = 10
     $initialized = $false
-    
+
     while (-not $initialized -and $retry -lt $maxRetry) {
         Start-Sleep -Seconds 2
-        
+
         $status = Get-TorrentStatus -MagnetId $MagnetId
-        
+
         if ($null -ne $status -and ($status.status -ne "magnet_conversion" -and $status.status -ne "magnet_error")) {
             $initialized = $true
             Write-Host "Torrent initialisé avec succès!" -ForegroundColor Green
@@ -1141,7 +1141,7 @@ function Wait-ForTorrentInitialization {
             $retry++
         }
     }
-    
+
     if (-not $initialized) {
         Write-Host "Délai d'initialisation dépassé. Veuillez vérifier l'état du torrent plus tard." -ForegroundColor Red
     }
@@ -1153,24 +1153,24 @@ function Wait-ForTorrentCompletion {
         [Parameter(Mandatory=$true)]
         [string]$MagnetId
     )
-    
+
     Clear-Host
     Write-Host "Attente de la fin du téléchargement..." -ForegroundColor Cyan
     Write-Host "Appuyez sur Ctrl+C pour annuler l'attente"
     Write-Host ""
-    
+
     $complete = $false
     $lastProgress = 0
     $lastUpdate = Get-Date
-    
+
     while (-not $complete) {
         $status = Get-TorrentStatus -MagnetId $MagnetId
-        
+
         if ($null -eq $status) {
             Write-Host "Erreur lors de la récupération du statut." -ForegroundColor Red
             break
         }
-        
+
         if ($status.status -eq "downloaded") {
             Write-Host "`nTéléchargement terminé!" -ForegroundColor Green
             $complete = $true
@@ -1181,19 +1181,19 @@ function Wait-ForTorrentCompletion {
         }
         else {
             $currentTime = Get-Date
-            
+
             # Mise à jour toutes les 3 secondes
             if (($currentTime - $lastUpdate).TotalSeconds -ge 3) {
                 $progress = if ($status.processing) { $status.processing.progress } else { 0 }
-                $speed = if ($status.processing -and $status.processing.speed.bytes -gt 0) { 
+                $speed = if ($status.processing -and $status.processing.speed.bytes -gt 0) {
                     Format-Size -Bytes $status.processing.speed.bytes
                 } else { "N/A" }
-                
+
                 $eta = if ($status.processing -and $status.processing.eta.seconds -gt 0) {
                     $etaTime = [TimeSpan]::FromSeconds($status.processing.eta.seconds)
                     $etaTime.ToString("hh\:mm\:ss")
                 } else { "Calcul..." }
-                
+
                 Clear-Host
                 Write-Host "Attente de la fin du téléchargement..." -ForegroundColor Cyan
                 Write-Host "Appuyez sur Ctrl+C pour annuler l'attente"
@@ -1203,18 +1203,18 @@ function Wait-ForTorrentCompletion {
                 Write-Host "Progression: $progress%" -ForegroundColor Green
                 Write-Host "Vitesse: $speed/s"
                 Write-Host "Temps restant: $eta"
-                
+
                 if ($progress -gt $lastProgress) {
                     $lastProgress = $progress
                 }
-                
+
                 $lastUpdate = $currentTime
             }
-            
+
             Start-Sleep -Milliseconds 500
         }
     }
-    
+
     Pause
 }
 
@@ -1224,7 +1224,7 @@ function Format-Size {
         [Parameter(Mandatory=$true)]
         [double]$Bytes
     )
-    
+
     if ($Bytes -lt 1KB) {
         return "$Bytes B"
     }
@@ -1248,7 +1248,7 @@ function Remove-InvalidFileNameChars {
         [Parameter(Mandatory=$true)]
         [string]$Name
     )
-    
+
     $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join ''
     $re = "[{0}]" -f [RegEx]::Escape($invalidChars)
     return ($Name -replace $re, '_')
@@ -1298,15 +1298,125 @@ function Set-DesktopWallpaper {
         Write-Host "Une erreur est survenue lors du changement du fond d'écran." -ForegroundColor Red
     }
 }
+
+# Fonction pour effectuer un test de vitesse de téléchargement avec affichage de la progression et URLs alternatives
+function Start-SpeedTest {
+    Write-Host "------------------------------------"
+    Write-Host " Test de Vitesse Internet (Download) "
+    Write-Host "------------------------------------" -ForegroundColor Green
+
+    $testFiles = @(
+        # --- Serveurs Français ---
+        @{ Name = "OVH (France - proof.ovh.net) - 100 MiB";  Url = "https://proof.ovh.net/files/100Mb.dat";  SizeBytes = 100 * 1024 * 1024 },
+        @{ Name = "OVH (France - proof.ovh.net) - 1 GiB";   Url = "https://proof.ovh.net/files/1Gb.dat";    SizeBytes = 1 * 1024 * 1024 * 1024 },
+        @{ Name = "OVH (France - proof.ovh.net) - 10 GiB";  Url = "https://proof.ovh.net/files/10Gb.dat";   SizeBytes = 10 * 1024 * 1024 * 1024 },
+
+        @{ Name = "Scaleway (France - Paris) - 100 MiB"; Url = "https://scaleway.testdebit.info/100M.iso"; SizeBytes = 100 * 1024 * 1024 },
+        @{ Name = "Scaleway (France - Paris) - 1 GiB";   Url = "https://scaleway.testdebit.info/1G.iso";    SizeBytes = 1 * 1024 * 1024 * 1024 },
+        @{ Name = "Scaleway (France - Paris) - 10 GiB";  Url = "https://scaleway.testdebit.info/10G.iso";    SizeBytes = 10 * 1024 * 1024 * 1024 },
+
+        # --- Serveurs Européens (pour variété et fallback) ---
+        @{ Name = "Tele2 (Europe - Anycast) - 100 MiB";  Url = "http://speedtest.tele2.net/100MB.zip";  SizeBytes = 100 * 1024 * 1024 },
+        @{ Name = "Tele2 (Europe - Anycast) - 1 GiB";    Url = "http://speedtest.tele2.net/1GB.zip";    SizeBytes = 1 * 1024 * 1024 * 1024 },
+
+        @{ Name = "ThinkBroadband (UK) - 50 MiB";   Url = "http://ipv4.download.thinkbroadband.com/50MB.zip";  SizeBytes = 50 * 1024 * 1024 },
+        @{ Name = "ThinkBroadband (UK) - 200 MiB";  Url = "http://ipv4.download.thinkbroadband.com/200MB.zip"; SizeBytes = 200 * 1024 * 1024 },
+        @{ Name = "ThinkBroadband (UK) - 512 MiB";  Url = "http://ipv4.download.thinkbroadband.com/512MB.zip"; SizeBytes = 512 * 1024 * 1024 }
+    )
+
+    Write-Host "`nChoisissez un serveur et une taille de fichier pour le test :"
+    for ($i = 0; $i -lt $testFiles.Count; $i++) {
+        # On ajuste l'affichage pour que les numéros correspondent à l'index + 1
+        Write-Host "$($i+1). $($testFiles[$i].Name)"
+    }
+
+    $choiceInput = ""
+    $selectedFile = $null
+
+    while ($true) { # Boucle infinie jusqu'à un choix valide ou Quitter
+        $choiceInput = Read-Host "`nEntrez le numéro de votre choix (1-$($testFiles.Count)), ou 'Q' pour quitter"
+
+        if ($choiceInput -eq 'Q' -or $choiceInput -eq 'q') {
+            Write-Host "Retour au menu principal..." -ForegroundColor Yellow
+            return # Quitte la fonction Start-SpeedTest
+        }
+
+        try {
+            $choiceInt = [int]$choiceInput
+            if ($choiceInt -ge 1 -and $choiceInt -le $testFiles.Count) {
+                $selectedFile = $testFiles[$choiceInt - 1]
+                break # Sort de la boucle while, choix valide
+            } else {
+                Write-Warning "Choix invalide. Veuillez réessayer."
+            }
+        }
+        catch {
+            Write-Warning "Entrée invalide. Veuillez entrer un nombre ou 'Q'."
+        }
+    }
+
+    # Si on arrive ici, $selectedFile est défini
+    $fileUrl = $selectedFile.Url
+    $fileSizeBytes = $selectedFile.SizeBytes
+
+    Write-Host "`nTest en cours avec : $($selectedFile.Name)..." -ForegroundColor Yellow
+
+    $tempFile = [System.IO.Path]::GetTempFileName()
+
+    try {
+        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+
+        # [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+
+        Invoke-WebRequest -Uri $fileUrl -OutFile $tempFile -UseBasicParsing -TimeoutSec 300
+
+        $stopwatch.Stop()
+        $durationSeconds = $stopwatch.Elapsed.TotalSeconds
+
+        if ($durationSeconds -eq 0) {
+            Write-Error "Le téléchargement a été trop rapide ou a échoué (durée nulle)."
+            # [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null # S'assurer de réinitialiser si utilisé
+            if (Test-Path $tempFile) { Remove-Item $tempFile -Force -ErrorAction SilentlyContinue }
+            return
+        }
+
+        $speedMbps = ($fileSizeBytes * 8) / $durationSeconds / 1000000
+
+        Write-Host "------------------------------------" -ForegroundColor Green
+        Write-Host " Résultat du Test de Vitesse" -ForegroundColor Green
+        Write-Host "------------------------------------" -ForegroundColor Green
+        Write-Host "Serveur/Fichier: $($selectedFile.Name)"
+        Write-Host "Taille du fichier: $([math]::Round($fileSizeBytes / (1024*1024), 2)) MiB"
+        Write-Host "Temps de téléchargement: $([math]::Round($durationSeconds, 2)) secondes"
+        Write-Host "Vitesse de téléchargement: $([math]::Round($speedMbps, 2)) Mbps" -ForegroundColor Cyan
+        Write-Host "------------------------------------"
+
+    }
+    catch {
+        Write-Error "Une erreur est survenue pendant le test : $($_.Exception.Message)"
+        if ($_.Exception.InnerException) {
+            Write-Error "Détails de l'erreur interne : $($_.Exception.InnerException.Message)"
+        }
+        Write-Warning "Vérifiez votre connexion internet ou essayez un autre serveur/fichier."
+        Write-Warning "L'URL testée était : $fileUrl"
+    }
+    finally {
+        # [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null
+        if (Test-Path $tempFile) {
+            Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
 function Write-Centered {
     param(
         [string]$Message
     )
-    
+
     $consoleWidth = $Host.UI.RawUI.WindowSize.Width
     $messageLength = $Message.Length
     $padding = $consoleWidth / 2 - $messageLength / 2
-    
+
     Write-Host ("{0}{1}" -f (' ' * [Math]::Floor($padding)), $Message)
 }
 
@@ -1321,16 +1431,16 @@ function Show-Menu {
     Write-Centered "╚═╝  ╚═╝╚══════╝╚══════╝╚═════╝ ╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝ "
 
     Write-Centered "===== Alldebrid PowerShell Downloader =====" -ForegroundColor Cyan
-    
+
     # Vérifier l'API au lancement
     <#$apiValid = Test-ApiValidity
-    
+
     if (-not $apiValid) {
         Write-Host "`nLa clé API semble invalide. Veuillez vérifier la configuration." -ForegroundColor Red
         Pause
         exit
     }#>
-    
+
     Write-Host "`n1. Mode rapide (interface graphique)"
     Write-Host "2. Télécharger un lien unique"
     Write-Host "3. Télécharger plusieurs liens"
@@ -1339,13 +1449,14 @@ function Show-Menu {
     Write-Host "6. Lire directement avec VLC (streaming)"
     Write-Host "7. Gestionnaire de torrents"
     Write-Host "8. Afficher l'historique des liens débridés"
+    Write-Host "9. Speedtest"
     Write-Host "Q. Quitter"
     Write-Host "========================================"
     Write-Host "Dossier de téléchargement actuel: $script:currentDownloadFolder" -ForegroundColor Yellow
     Write-Host "========================================"
-    
-    $choice = Read-Host "Choisissez une option (1-8 Or Q)"
-    
+
+    $choice = Read-Host "Choisissez une option (1-9 Or Q)"
+
     switch ($choice) {
         "1" {
             # Lancer l'interface graphique
@@ -1362,14 +1473,14 @@ function Show-Menu {
         "3" {
             $links = @()
             Write-Host "Entrez les liens un par un. Tapez 'terminé' pour finir."
-            
+
             do {
                 $link = Read-Host "Lien (ou 'terminé')"
                 if ($link -ne "terminé") {
                     $links += $link
                 }
             } while ($link -ne "terminé")
-            
+
             $category = Read-Host "Catégorie (facultatif, laissez vide si aucune)"
             Start-AlldebridDownload -Links $links -Category $category
             Pause
@@ -1377,7 +1488,7 @@ function Show-Menu {
         }
         "4" {
             $filePath = Read-Host "Chemin du fichier contenant les liens (un par ligne)"
-            
+
             if (Test-Path -Path $filePath) {
                 $links = Get-Content -Path $filePath | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
                 $category = Read-Host "Catégorie (facultatif, laissez vide si aucune)"
@@ -1385,7 +1496,7 @@ function Show-Menu {
             } else {
                 Write-Host "Fichier introuvable!" -ForegroundColor Red
             }
-            
+
             Pause
             Show-Menu
         }
@@ -1393,27 +1504,27 @@ function Show-Menu {
             # Sélection du dossier de téléchargement avec Windows Forms
             Write-Host "Ouverture du sélecteur de dossier..." -ForegroundColor Cyan
             $selectedFolder = Select-Folder -Description "Choisissez le dossier de destination pour les téléchargements" -InitialDirectory $script:currentDownloadFolder
-            
+
             if ($selectedFolder) {
                 $script:currentDownloadFolder = $selectedFolder
                 # Ne pas modifier l'emplacement du fichier de log
                 Save-Config
                 Write-Host "Nouveau dossier de téléchargement défini: $script:currentDownloadFolder" -ForegroundColor Green
             }
-            
+
             Pause
             Show-Menu
         }
         "6" {
             $link = Read-Host "Entrez le lien à streamer avec VLC"
             $result = Start-VlcStreaming -Link $link
-            
+
             if ($result) {
                 Write-Host "Lecture lancée dans VLC. Profitez de votre vidéo!" -ForegroundColor Green
             } else {
                 Write-Host "Échec du lancement de la lecture." -ForegroundColor Red
             }
-            
+
             Pause
             Show-Menu
         }
@@ -1427,7 +1538,13 @@ function Show-Menu {
             Pause
             Show-Menu
         }
-        
+        "9" {
+            Start-SpeedTest
+            Pause
+            Show-Menu
+
+        }
+
         "blyat" {
         Write-Host "☭ Gloire à la mère patrie !" -ForegroundColor Red
 
@@ -1510,9 +1627,9 @@ function Show-Menu {
 
             Pause
             Show-Menu
-        
+
         }
-        
+
         "Q" {
             Write-Host "Au revoir!" -ForegroundColor Cyan
             return
