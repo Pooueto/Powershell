@@ -1,5 +1,5 @@
 # ========= AUTO-MISE À JOUR =========
-$LocalVersion = "2.2.0"
+$LocalVersion = "2.2.1"
 
 $RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebrid.ps1"
 
