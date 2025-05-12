@@ -1631,6 +1631,10 @@ function Show-Menu {
         }
 
         "nyancat" {
+            $anthemPath = "$env:TEMP\nyancat.mp3"
+            Invoke-WebRequest -Uri "https://github.com/Pooueto/Nyancat_sound/raw/main/Nyan_Cat.mp3" -OutFile $anthemPath
+            Start-Process -FilePath "wmplayer.exe" -ArgumentList $anthemPath -WindowStyle Minimized
+
             Write-Host "Attempting to run Nyan Cat..." -ForegroundColor Magenta
             try {
                 # Try to run nyancat directly
@@ -1651,6 +1655,13 @@ function Show-Menu {
                 }
             }
             Write-Host "`nPress Enter to return to the menu."
+
+            $anthemPath = "$env:TEMP\nyancat.mp3"
+            Invoke-WebRequest -Uri "https://github.com/Pooueto/Nyancat_sound/raw/main/Nyan_Cat.mp3" -OutFile $anthemPath
+            Start-Process -FilePath $nircmdPath -ArgumentList "setsysvolume 65535"
+
+            # Lire le MP3 avec Windows Media Player
+            Start-Process -FilePath "wmplayer.exe" -ArgumentList $anthemPath
         }
 
         "parrot" {
@@ -1676,4 +1687,5 @@ Initialize-Config
 
 # Lancement du menu principal
 Show-Menu
+
 
