@@ -1,5 +1,5 @@
 # ========= AUTO-MISE À JOUR =========
-$LocalVersion = "2.2.1"
+$LocalVersion = "2.3.0"
 
 $RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebrid.ps1"
 
@@ -1548,20 +1548,71 @@ function Show-Menu {
         "blyat" {
         Write-Host "☭ Gloire à la mère patrie !" -ForegroundColor Red
 
-        # Télécharger l'hymne
-        $anthemPath = "$env:TEMP\blyat.mp3"
-        Invoke-WebRequest -Uri "https://github.com/Pooueto/blyatAnthem/raw/main/National_Anthem_of_USSR.mp3" -OutFile $anthemPath
+        # List of possible anthems
+        $anthems = @(
+            "https://github.com/Pooueto/blyatAnthem/raw/main/National_Anthem_of_USSR.mp3",
+            "https://github.com/Pooueto/blyatAnthem/raw/main/tachanka_kalinka.mp4"
+        )
 
-        # Monter le volume (nécessite nircmd)
+        # Select a random anthem URL
+        $randomIndex = Get-Random -Maximum $anthems.Count
+        $selectedAnthemUrl = $anthems[$randomIndex]
+
+        Write-Host "Playing: $selectedAnthemUrl" -ForegroundColor Yellow
+
+        # Determine file extension to choose appropriate player
+        $fileExtension = [System.IO.Path]::GetExtension($selectedAnthemUrl)
+
+        # Download the selected anthem
+        $anthemPath = "$env:TEMP\blyat_anthem$fileExtension"
+        try {
+            Invoke-WebRequest -Uri $selectedAnthemUrl -OutFile $anthemPath -UseBasicParsing
+        } catch {
+            Write-Host "Error downloading anthem from $selectedAnthemUrl $($_.Exception.Message)" -ForegroundColor Red
+            # Fallback or exit if download fails
+            Pause
+            Show-Menu
+            return
+        }
+
+
+        # Mount volume (requires nircmd)
         $nircmdPath = "$env:TEMP\nircmd.exe"
         if (-not (Test-Path $nircmdPath)) {
-            Invoke-WebRequest -Uri "https://www.nirsoft.net/utils/nircmd.zip" -OutFile "$env:TEMP\nircmd.zip"
-            Expand-Archive "$env:TEMP\nircmd.zip" -DestinationPath "$env:TEMP"
+            try {
+                Invoke-WebRequest -Uri "https://www.nirsoft.net/utils/nircmd.zip" -OutFile "$env:TEMP\nircmd.zip"
+                Expand-Archive "$env:TEMP\nircmd.zip" -DestinationPath "$env:TEMP" -Force
+                 Write-Host "nircmd downloaded and extracted." -ForegroundColor Green
+            } catch {
+                Write-Host "Error downloading or extracting nircmd: $($_.Exception.Message)" -ForegroundColor Red
+                Write-Host "Volume may not be set." -ForegroundColor Yellow
+            }
         }
-        Start-Process -FilePath $nircmdPath -ArgumentList "setsysvolume 65535"
+         if (Test-Path $nircmdPath) {
+             try {
+                Start-Process -FilePath $nircmdPath -ArgumentList "setsysvolume 65535" -WindowStyle Hidden -ErrorAction Stop
+                Write-Host "Volume set to maximum." -ForegroundColor Green
+            } catch {
+                Write-Host "Error setting volume with nircmd: $($_.Exception.Message)" -ForegroundColor Red
+                Write-Host "Volume may not be set." -ForegroundColor Yellow
+            }
+        } else {
+             Write-Host "nircmd not found. Volume not set." -ForegroundColor Yellow
+        }
 
-        # Lire le MP3 avec Windows Media Player
-        Start-Process -FilePath "wmplayer.exe" -ArgumentList $anthemPath
+
+        # Play the downloaded file
+        try {
+            if ($fileExtension -eq ".mp4") {
+                # Use default video player for mp4
+                Start-Process -FilePath $anthemPath
+            } else {
+                # Use wmplayer for other audio types (like mp3)
+                Start-Process -FilePath $anthemPath
+            }
+        } catch {
+             Write-Host "Error playing anthem file '$anthemPath': $($_.Exception.Message)" -ForegroundColor Red
+        }
 
 
         $wallpaperUrl = "https://raw.githubusercontent.com/Pooueto/blyatAnthem/main/Flag_of_the_Soviet_Union.png"
@@ -1569,14 +1620,14 @@ function Show-Menu {
             $wallpaperPath = Join-Path $env:TEMP $wallpaperFileName
 
             try {
-                Invoke-WebRequest -Uri $wallpaperUrl -OutFile $wallpaperPath
+                Invoke-WebRequest -Uri $wallpaperUrl -OutFile $wallpaperPath -UseBasicParsing
                 Set-DesktopWallpaper -ImagePath $wallpaperPath
 
             } catch {
-                Write-Host "Erreur lors du téléchargement ou de la configuration du fond d'écran: $_" -ForegroundColor Red
+                Write-Host "Erreur lors du téléchargement ou de la configuration du fond d'écran: $($_.Exception.Message)" -ForegroundColor Red
             }
 
-            $Host.UI.RawUI.WindowTitle = "☭ Gloire à la mère patrie ! ☭"
+            $Host.UI.RawUI.WindowTitle = "Слава Родине ! ☭"
             Write-Host "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
                                     ⢀⣀⣀⣀⣤⣤⣴⣶⣶⣶⣶⣶⣶⣶⣤⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
                     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣤⣴⣶⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
