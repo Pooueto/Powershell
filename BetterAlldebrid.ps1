@@ -1,5 +1,5 @@
 # ========= AUTO-MISE À JOUR =========
-$LocalVersion = "2.3.0"
+$LocalVersion = "2.3.1"
 
 $RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebrid.ps1"
 
@@ -370,7 +370,6 @@ function Download-File {
             Start-Sleep -Seconds $waitTime
         }
     }
-
     return $downloadSuccess
 }
 
@@ -1684,7 +1683,8 @@ function Show-Menu {
         "nyancat" {
             $anthemPath = "$env:TEMP\nyancat.mp3"
             Invoke-WebRequest -Uri "https://github.com/Pooueto/Nyancat_sound/raw/main/Nyan_Cat.mp3" -OutFile $anthemPath
-            Start-Process -FilePath "wmplayer.exe" -ArgumentList $anthemPath -WindowStyle Minimized
+            Start-Process -FilePath $anthemPath
+            Write-Host "Lancement de la musique Nyancat"
 
             Write-Host "Attempting to run Nyan Cat..." -ForegroundColor Magenta
             try {
@@ -1706,13 +1706,6 @@ function Show-Menu {
                 }
             }
             Write-Host "`nPress Enter to return to the menu."
-
-            $anthemPath = "$env:TEMP\nyancat.mp3"
-            Invoke-WebRequest -Uri "https://github.com/Pooueto/Nyancat_sound/raw/main/Nyan_Cat.mp3" -OutFile $anthemPath
-            Start-Process -FilePath $nircmdPath -ArgumentList "setsysvolume 65535"
-
-            # Lire le MP3 avec Windows Media Player
-            Start-Process -FilePath "wmplayer.exe" -ArgumentList $anthemPath
         }
 
         "parrot" {
