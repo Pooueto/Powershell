@@ -1,5 +1,5 @@
 # ========= AUTO-MISE À JOUR =========
-$LocalVersion = "2.3.2"
+$LocalVersion = "2.3.3"
 
 $RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebrid.ps1"
 
@@ -1714,6 +1714,52 @@ function Show-Menu {
         "fine" {
             $jsonFilePath = "$env:TEMP\ascciFine.json"
             Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/ascii-frames.json" -OutFile $jsonFilePath
+            #$jsonFilePath = ".\ascii-frames.json" # Assurez-vous que ce chemin est correct
+
+            if (-not (Test-Path $jsonFilePath)) {
+                Write-Error "Le fichier '$jsonFilePath' n'a pas été trouvé. Veuillez vérifier le chemin."
+                exit
+            }
+
+            try {
+                    # Lire le contenu du fichier JSON
+                    $jsonContent = Get-Content $jsonFilePath | Out-String
+
+                    # Convertir le JSON en un objet PowerShell
+                    # Chaque élément du tableau (chaque "frame") sera un tableau de lignes ASCII
+                    $frames = $jsonContent | ConvertFrom-Json
+
+                    $animationDelayMs = 100 # Délai entre chaque frame en millisecondes. Ajustez pour changer la vitesse.
+                    $numberOfLoops = 2      # Nombre de fois que l'animation sera jouée. Mettez $true pour une boucle infinie.
+
+                    # Boucle d'animation
+                    $i = 0
+                    while ($i -lt $numberOfLoops) { # Utilisez 'while ($true)' pour une boucle infinie
+                        foreach ($frame in $frames) {
+                            Clear-Host # Efface la console à chaque nouvelle frame
+
+                            # Affiche chaque ligne de la frame actuelle
+                            foreach ($line in $frame) {
+                                Write-Centered -Message $line
+                            }
+
+                            Start-Sleep -Milliseconds $animationDelayMs # Attend avant d'afficher la frame suivante
+                        }
+                        $i++
+                        if ($numberOfLoops -eq $true) { # Si la boucle est infinie, ne pas incrémenter $i
+                            $i = 0
+                        }
+                    }
+                }
+            catch {
+                Write-Error "Erreur lors du traitement du fichier JSON ou de l'animation : $($_.Exception.Message)"
+            }
+            Show-Menu
+        }
+
+        "kuru" {
+            $jsonFilePath = "$env:TEMP\kuru.json"
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/kuru.json" -OutFile $jsonFilePath
             #$jsonFilePath = ".\ascii-frames.json" # Assurez-vous que ce chemin est correct
 
             if (-not (Test-Path $jsonFilePath)) {
