@@ -1,5 +1,5 @@
 # ========= AUTO-MISE À JOUR =========
-$LocalVersion = "2.3.1"
+$LocalVersion = "2.3.2"
 
 $RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebrid.ps1"
 
@@ -1408,15 +1408,14 @@ function Start-SpeedTest {
 }
 
 function Write-Centered {
-    param(
-        [string]$Message
+    param (
+        [string]$Message,
+        [ConsoleColor]$ForegroundColor = 'White'
     )
-
-    $consoleWidth = $Host.UI.RawUI.WindowSize.Width
-    $messageLength = $Message.Length
-    $padding = $consoleWidth / 2 - $messageLength / 2
-
-    Write-Host ("{0}{1}" -f (' ' * [Math]::Floor($padding)), $Message)
+    $windowWidth = (Get-Host).UI.RawUI.WindowSize.Width
+    $padding = ($windowWidth - $Message.Length) / 2
+    if ($padding -lt 0) { $padding = 0 } # S'assurer que le padding n'est pas négatif pour les lignes très longues
+    Write-Host (" " * [int]$padding + $Message) -ForegroundColor $ForegroundColor
 }
 
 # Interface simple pour l'entrée des liens (console)
@@ -1710,6 +1709,59 @@ function Show-Menu {
 
         "parrot" {
             curl parrot.live
+        }
+
+        "fine" {
+            $jsonFilePath = "$env:TEMP\ascciFine.json"
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/ascii-frames.json" -OutFile $jsonFilePath
+            #$jsonFilePath = ".\ascii-frames.json" # Assurez-vous que ce chemin est correct
+
+            if (-not (Test-Path $jsonFilePath)) {
+                Write-Error "Le fichier '$jsonFilePath' n'a pas été trouvé. Veuillez vérifier le chemin."
+                exit
+            }
+
+            try {
+                    # Lire le contenu du fichier JSON
+                    $jsonContent = Get-Content $jsonFilePath | Out-String
+
+                    # Convertir le JSON en un objet PowerShell
+                    # Chaque élément du tableau (chaque "frame") sera un tableau de lignes ASCII
+                    $frames = $jsonContent | ConvertFrom-Json
+
+                    $animationDelayMs = 100 # Délai entre chaque frame en millisecondes. Ajustez pour changer la vitesse.
+                    $numberOfLoops = 2      # Nombre de fois que l'animation sera jouée. Mettez $true pour une boucle infinie.
+
+                    # Boucle d'animation
+                    $i = 0
+                    while ($i -lt $numberOfLoops) { # Utilisez 'while ($true)' pour une boucle infinie
+                        foreach ($frame in $frames) {
+                            Clear-Host # Efface la console à chaque nouvelle frame
+
+                            # Affiche chaque ligne de la frame actuelle
+                            foreach ($line in $frame) {
+                                Write-Centered -Message $line
+                            }
+
+                            Start-Sleep -Milliseconds $animationDelayMs # Attend avant d'afficher la frame suivante
+                        }
+                        $i++
+                        if ($numberOfLoops -eq $true) { # Si la boucle est infinie, ne pas incrémenter $i
+                            $i = 0
+                        }
+                    }
+                }
+            catch {
+                Write-Error "Erreur lors du traitement du fichier JSON ou de l'animation : $($_.Exception.Message)"
+            }
+            Show-Menu
+        }
+
+        "V" {
+        Write-Host $LocalVersion
+        }
+        "Version" {
+            Write-Host $LocalVersion
         }
 
         "Q" {
