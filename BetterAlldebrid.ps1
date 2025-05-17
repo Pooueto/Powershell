@@ -1,5 +1,5 @@
 # ========= AUTO-MISE À JOUR =========
-$LocalVersion = "2.3.3"
+$LocalVersion = "2.3.4"
 
 $RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebrid.ps1"
 
@@ -1407,6 +1407,81 @@ function Start-SpeedTest {
     }
 }
 
+function Play-AsciiAnimation {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$AnimationName, # Un nom pour identifier l'animation (ex: "fine", "kuru")
+
+        [Parameter(Mandatory=$true)]
+        [string]$JsonUri,       # L'URL du fichier JSON contenant les frames
+
+        [int]$AnimationDelayMs = 100, # Délai entre chaque frame en millisecondes
+
+        # Utilisez [object] pour permettre soit un nombre, soit $true pour une boucle infinie
+        [object]$NumberOfLoops = 2    # Nombre de fois que l'animation sera jouée. $true pour une boucle infinie.
+    )
+
+    # Construire le chemin du fichier temporaire de manière robuste
+    $jsonFilePath = Join-Path -Path $env:TEMP -ChildPath "$($AnimationName).json"
+
+    Write-Host "Téléchargement de l'animation '$AnimationName' depuis '$JsonUri'..."
+
+    # --- Téléchargement du fichier JSON ---
+    try {
+        Invoke-WebRequest -Uri $JsonUri -OutFile $jsonFilePath -ErrorAction Stop
+    }
+    catch {
+        Write-Error "Échec du téléchargement de l'animation '$AnimationName' : $($_.Exception.Message)"
+        return # Sortir de la fonction en cas d'erreur de téléchargement
+    }
+
+    if (-not (Test-Path $jsonFilePath)) {
+        Write-Error "Le fichier d'animation '$jsonFilePath' n'a pas été trouvé après le téléchargement."
+        return # Sortir si le fichier n'est pas là
+    }
+
+    # --- Lecture et lecture de l'animation ---
+    try {
+        # Lire le contenu du fichier JSON et le convertir
+        $jsonContent = Get-Content $jsonFilePath | Out-String
+        $frames = $jsonContent | ConvertFrom-Json
+
+        $currentLoop = 0
+        while ($true) {
+            # Condition pour sortir de la boucle si ce n'est pas une boucle infinie
+            if ($NumberOfLoops -is [int] -and $currentLoop -ge $NumberOfLoops) {
+                break
+            }
+
+            foreach ($frame in $frames) {
+                Clear-Host # Efface la console à chaque nouvelle frame
+
+                # Affiche chaque ligne de la frame actuelle
+                foreach ($line in $frame) {
+                    # NOTE : La fonction 'Write-Centered' n'est pas incluse ici.
+                    # Assurez-vous qu'elle est définie ailleurs dans votre script,
+                    # ou remplacez-la par une logique de centrage si nécessaire.
+                    Write-Centered -Message $line
+                }
+
+                Start-Sleep -Milliseconds $AnimationDelayMs # Attend avant d'afficher la frame suivante
+            }
+
+            # Incrémenter le compteur de boucle si ce n'est pas une boucle infinie
+            if ($NumberOfLoops -isnot [bool] -or $NumberOfLoops -ne $true) {
+                $currentLoop++
+            }
+        }
+    }
+    catch {
+        Write-Error "Erreur lors du traitement ou de l'affichage de l'animation '$AnimationName' : $($_.Exception.Message)"
+    }
+    finally {
+        # Optionnel : Nettoyer le fichier JSON téléchargé après l'animation
+        # Remove-Item $jsonFilePath -ErrorAction SilentlyContinue
+    }
+}
+
 function Write-Centered {
     param (
         [string]$Message,
@@ -1712,96 +1787,34 @@ function Show-Menu {
         }
 
         "fine" {
-            $jsonFilePath = "$env:TEMP\ascciFine.json"
-            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/ascii-frames.json" -OutFile $jsonFilePath
-            #$jsonFilePath = ".\ascii-frames.json" # Assurez-vous que ce chemin est correct
+    Play-AsciiAnimation `
+        -AnimationName "ascciFine" `
+        -JsonUri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/ascii-frames.json" `
+        -NumberOfLoops 2 `
+        -AnimationDelayMs 100
 
-            if (-not (Test-Path $jsonFilePath)) {
-                Write-Error "Le fichier '$jsonFilePath' n'a pas été trouvé. Veuillez vérifier le chemin."
-                exit
-            }
+    Show-Menu # Assurez-vous que Show-Menu est défini ailleurs dans votre script
+}
 
-            try {
-                    # Lire le contenu du fichier JSON
-                    $jsonContent = Get-Content $jsonFilePath | Out-String
+"kuru" {
+    Play-AsciiAnimation `
+        -AnimationName "kuru" `
+        -JsonUri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/kuru.json" `
+        -NumberOfLoops 2 `
+        -AnimationDelayMs 100
 
-                    # Convertir le JSON en un objet PowerShell
-                    # Chaque élément du tableau (chaque "frame") sera un tableau de lignes ASCII
-                    $frames = $jsonContent | ConvertFrom-Json
+    Show-Menu # Assurez-vous que Show-Menu est défini ailleurs dans votre script
+}
 
-                    $animationDelayMs = 100 # Délai entre chaque frame en millisecondes. Ajustez pour changer la vitesse.
-                    $numberOfLoops = 2      # Nombre de fois que l'animation sera jouée. Mettez $true pour une boucle infinie.
+"hitler" {
+    Play-AsciiAnimation `
+        -AnimationName "hitler" `
+        -JsonUri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/hitler.json" `
+        -NumberOfLoops 2 `
+        -AnimationDelayMs 100
 
-                    # Boucle d'animation
-                    $i = 0
-                    while ($i -lt $numberOfLoops) { # Utilisez 'while ($true)' pour une boucle infinie
-                        foreach ($frame in $frames) {
-                            Clear-Host # Efface la console à chaque nouvelle frame
-
-                            # Affiche chaque ligne de la frame actuelle
-                            foreach ($line in $frame) {
-                                Write-Centered -Message $line
-                            }
-
-                            Start-Sleep -Milliseconds $animationDelayMs # Attend avant d'afficher la frame suivante
-                        }
-                        $i++
-                        if ($numberOfLoops -eq $true) { # Si la boucle est infinie, ne pas incrémenter $i
-                            $i = 0
-                        }
-                    }
-                }
-            catch {
-                Write-Error "Erreur lors du traitement du fichier JSON ou de l'animation : $($_.Exception.Message)"
-            }
-            Show-Menu
-        }
-
-        "kuru" {
-            $jsonFilePath = "$env:TEMP\kuru.json"
-            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/kuru.json" -OutFile $jsonFilePath
-            #$jsonFilePath = ".\ascii-frames.json" # Assurez-vous que ce chemin est correct
-
-            if (-not (Test-Path $jsonFilePath)) {
-                Write-Error "Le fichier '$jsonFilePath' n'a pas été trouvé. Veuillez vérifier le chemin."
-                exit
-            }
-
-            try {
-                    # Lire le contenu du fichier JSON
-                    $jsonContent = Get-Content $jsonFilePath | Out-String
-
-                    # Convertir le JSON en un objet PowerShell
-                    # Chaque élément du tableau (chaque "frame") sera un tableau de lignes ASCII
-                    $frames = $jsonContent | ConvertFrom-Json
-
-                    $animationDelayMs = 100 # Délai entre chaque frame en millisecondes. Ajustez pour changer la vitesse.
-                    $numberOfLoops = 2      # Nombre de fois que l'animation sera jouée. Mettez $true pour une boucle infinie.
-
-                    # Boucle d'animation
-                    $i = 0
-                    while ($i -lt $numberOfLoops) { # Utilisez 'while ($true)' pour une boucle infinie
-                        foreach ($frame in $frames) {
-                            Clear-Host # Efface la console à chaque nouvelle frame
-
-                            # Affiche chaque ligne de la frame actuelle
-                            foreach ($line in $frame) {
-                                Write-Centered -Message $line
-                            }
-
-                            Start-Sleep -Milliseconds $animationDelayMs # Attend avant d'afficher la frame suivante
-                        }
-                        $i++
-                        if ($numberOfLoops -eq $true) { # Si la boucle est infinie, ne pas incrémenter $i
-                            $i = 0
-                        }
-                    }
-                }
-            catch {
-                Write-Error "Erreur lors du traitement du fichier JSON ou de l'animation : $($_.Exception.Message)"
-            }
-            Show-Menu
-        }
+    Show-Menu # Assurez-vous que Show-Menu est défini ailleurs dans votre script
+}
 
         "V" {
         Write-Host $LocalVersion
