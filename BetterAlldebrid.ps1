@@ -1,5 +1,12 @@
-# ========= AUTO-MISE À JOUR =========
-$LocalVersion = "2.3.4"
+
+#  ██╗   ██╗██████╗ ██████╗  █████╗ ████████╗███████╗██████╗
+#  ██║   ██║██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝██╔════╝██╔══██╗
+#  ██║   ██║██████╔╝██║  ██║███████║   ██║   █████╗  ██████╔╝
+#  ██║   ██║██╔═══╝ ██║  ██║██╔══██║   ██║   ██╔══╝  ██╔══██╗
+#  ╚██████╔╝██║     ██████╔╝██║  ██║   ██║   ███████╗██║  ██║
+#   ╚═════╝ ╚═╝     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
+
+$LocalVersion = "3.0.0"
 
 $RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebrid.ps1"
 
@@ -22,10 +29,14 @@ try {
     Write-Warning "Impossible de vérifier la version distante : $_"
 }
 
-# Script PowerShell pour Alldebrid - Version prête à l'emploi
-# ----------------------------------------------
 
-# ========= CONFIGURATION PRÉDÉFINIE =========
+#  ██╗      ██████╗  ██████╗ ██╗███╗   ██╗     ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗
+#  ██║     ██╔═══██╗██╔════╝ ██║████╗  ██║    ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝
+#  ██║     ██║   ██║██║  ███╗██║██╔██╗ ██║    ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗
+#  ██║     ██║   ██║██║   ██║██║██║╚██╗██║    ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║
+#  ███████╗╚██████╔╝╚██████╔╝██║██║ ╚████║    ╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝
+#  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝     ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝
+
 # Entrez votre clé API ici
 $predefinedApiKey = "geH6Zqg4EDxrYxBt5bLl"
 
@@ -43,29 +54,45 @@ $maxRetries = 3
 # Nom d'agent pour les requêtes API
 $userAgent = "BetterAlldebrid"
 
-# ========= FIN DE LA CONFIGURATION PRÉDÉFINIE =========
 
-# Chargement des assemblies nécessaires
+#   █████╗ ███████╗███████╗███████╗███╗   ███╗██████╗ ██╗     ██╗███████╗███████╗
+#  ██╔══██╗██╔════╝██╔════╝██╔════╝████╗ ████║██╔══██╗██║     ██║██╔════╝██╔════╝
+#  ███████║███████╗███████╗█████╗  ██╔████╔██║██████╔╝██║     ██║█████╗  ███████╗
+#  ██╔══██║╚════██║╚════██║██╔══╝  ██║╚██╔╝██║██╔══██╗██║     ██║██╔══╝  ╚════██║
+#  ██║  ██║███████║███████║███████╗██║ ╚═╝ ██║██████╔╝███████╗██║███████╗███████║
+#  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚═╝     ╚═╝╚═════╝ ╚══════╝╚═╝╚══════╝╚══════╝
+
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Web
 Add-Type -AssemblyName System.Drawing
 
-# Fonction pour sélectionner un dossier avec une fenêtre de dialogue
-function Select-Folder {
-    param (
-        [string]$Description = "Sélectionnez un dossier de destination",
-        [string]$InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
-    )
 
-    $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
-    $folderBrowser.Description = $Description
-    $folderBrowser.RootFolder = [System.Environment+SpecialFolder]::MyComputer
-    $folderBrowser.SelectedPath = $InitialDirectory
+#   ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗     ███████╗██╗██╗     ███████╗
+#  ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝     ██╔════╝██║██║     ██╔════╝
+#  ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗    █████╗  ██║██║     █████╗
+#  ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║    ██╔══╝  ██║██║     ██╔══╝
+#  ╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝    ██║     ██║███████╗███████╗
+#   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝     ╚═╝     ╚═╝╚══════╝╚══════╝
 
-    if ($folderBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-        return $folderBrowser.SelectedPath
+# Fonction pour créer une configuration par défaut
+function Create-DefaultConfig {
+    # Définir des chemins par défaut
+    $defaultDownloadFolder = Join-Path -Path ([Environment]::GetFolderPath('MyDocuments')) -ChildPath "AlldebridDownloads"
+    $script:currentDownloadFolder = $defaultDownloadFolder
+
+    # Créer la configuration par défaut
+    $config = @{
+        DownloadFolder = $defaultDownloadFolder
+        # Ne pas stocker le chemin du log dans la config
     }
-    return $null
+
+    # S'assurer que le dossier existe
+    if (-not (Test-Path -Path $defaultDownloadFolder)) {
+        New-Item -ItemType Directory -Path $defaultDownloadFolder -Force | Out-Null
+    }
+
+    # Enregistrer la configuration
+    $config | ConvertTo-Json | Set-Content -Path $script:configFilePath
 }
 
 # Fonction pour créer un fichier de configuration si nécessaire
@@ -98,27 +125,6 @@ function Initialize-Config {
     } else {
         Create-DefaultConfig
     }
-}
-
-# Fonction pour créer une configuration par défaut
-function Create-DefaultConfig {
-    # Définir des chemins par défaut
-    $defaultDownloadFolder = Join-Path -Path ([Environment]::GetFolderPath('MyDocuments')) -ChildPath "AlldebridDownloads"
-    $script:currentDownloadFolder = $defaultDownloadFolder
-
-    # Créer la configuration par défaut
-    $config = @{
-        DownloadFolder = $defaultDownloadFolder
-        # Ne pas stocker le chemin du log dans la config
-    }
-
-    # S'assurer que le dossier existe
-    if (-not (Test-Path -Path $defaultDownloadFolder)) {
-        New-Item -ItemType Directory -Path $defaultDownloadFolder -Force | Out-Null
-    }
-
-    # Enregistrer la configuration
-    $config | ConvertTo-Json | Set-Content -Path $script:configFilePath
 }
 
 # Fonction pour sauvegarder la configuration
@@ -163,45 +169,194 @@ function Write-Log {
     }
 }
 
-function Get-AlldebridHistory {
+# Fonction pour sélectionner un dossier avec une fenêtre de dialogue
+function Select-Folder {
     param (
-        [string]$ApiKey = $predefinedApiKey, # Use the predefined API key from your script
-        [string]$Agent = $userAgent # Use the predefined agent from your script
+        [string]$Description = "Sélectionnez un dossier de destination",
+        [string]$InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
     )
 
-    Write-Log "Récupération de l'historique des liens débridés..."
+    $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
+    $folderBrowser.Description = $Description
+    $folderBrowser.RootFolder = [System.Environment+SpecialFolder]::MyComputer
+    $folderBrowser.SelectedPath = $InitialDirectory
 
-    $apiUrl = "https://api.alldebrid.com/v4/user/history?agent=$Agent&apikey=$ApiKey"
+    if ($folderBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        return $folderBrowser.SelectedPath
+    }
+    return $null
+}
 
-    try {
-        $response = Invoke-RestMethod -Uri $apiUrl -Method Get
 
-        if ($response.status -eq "success") {
-            Write-Log "Historique récupéré avec succès."
+#  ██╗   ██╗████████╗██╗██╗     ███████╗
+#  ██║   ██║╚══██╔══╝██║██║     ██╔════╝
+#  ██║   ██║   ██║   ██║██║     ███████╗
+#  ██║   ██║   ██║   ██║██║     ╚════██║
+#  ╚██████╔╝   ██║   ██║███████╗███████║
+#   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚══════╝
 
-            if ($response.data.links -and $response.data.links.Count -gt 0) {
-                Write-Host "`n===== Historique des liens débridés =====" -ForegroundColor Cyan
-                foreach ($linkEntry in $response.data.links) {
-                    Write-Host "Lien original: $($linkEntry.link)"
-                    Write-Host "Lien débridé: $($linkEntry.unlockedLink)"
-                    Write-Host "Nom du fichier: $($linkEntry.filename)"
-                    Write-Host "Date: $($linkEntry.addedDate)"
-                    Write-Host "-------------------------------------"
-                }
-                 Write-Host "===== Fin de l'historique =====" -ForegroundColor Cyan
-            } else {
-                Write-Host "Aucun lien débridé trouvé dans l'historique." -ForegroundColor Yellow
-            }
+# Fonction utilitaire pour formater la taille des fichiers
+function Format-Size {
+    param (
+        [Parameter(Mandatory=$true)]
+        [double]$Bytes
+    )
 
-        } else {
-            Write-Log "Erreur lors de la récupération de l'historique: $($response.error.message)"
-             Write-Host "Erreur lors de la récupération de l'historique: $($response.error.message)" -ForegroundColor Red
-        }
-    } catch {
-        Write-Log "Exception lors de l'appel à l'API pour l'historique: $_"
-        Write-Host "Une erreur est survenue lors de la récupération de l'historique." -ForegroundColor Red
+    if ($Bytes -lt 1KB) {
+        return "$Bytes B"
+    }
+    elseif ($Bytes -lt 1MB) {
+        return "{0:N2} KB" -f ($Bytes / 1KB)
+    }
+    elseif ($Bytes -lt 1GB) {
+        return "{0:N2} MB" -f ($Bytes / 1MB)
+    }
+    elseif ($Bytes -lt 1TB) {
+        return "{0:N2} GB" -f ($Bytes / 1GB)
+    }
+    else {
+        return "{0:N2} TB" -f ($Bytes / 1TB)
     }
 }
+
+# Fonction pour supprimer les caractères invalides dans les noms de fichiers
+function Remove-InvalidFileNameChars {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Name
+    )
+
+    $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join ''
+    $re = "[{0}]" -f [RegEx]::Escape($invalidChars)
+    return ($Name -replace $re, '_')
+}
+
+function Start-SpeedTest {
+    Write-Host "------------------------------------"
+    Write-Host " Test de Vitesse Internet (Download) "
+    Write-Host "------------------------------------" -ForegroundColor Green
+
+    $testFiles = @(
+        # --- Serveurs Français ---
+        @{ Name = "OVH (France - proof.ovh.net) - 100 MiB";  Url = "https://proof.ovh.net/files/100Mb.dat";  SizeBytes = 100 * 1024 * 1024 },
+        @{ Name = "OVH (France - proof.ovh.net) - 1 GiB";   Url = "https://proof.ovh.net/files/1Gb.dat";    SizeBytes = 1 * 1024 * 1024 * 1024 },
+        @{ Name = "OVH (France - proof.ovh.net) - 10 GiB";  Url = "https://proof.ovh.net/files/10Gb.dat";   SizeBytes = 10 * 1024 * 1024 * 1024 },
+
+        @{ Name = "Scaleway (France - Paris) - 100 MiB"; Url = "https://scaleway.testdebit.info/100M.iso"; SizeBytes = 100 * 1024 * 1024 },
+        @{ Name = "Scaleway (France - Paris) - 1 GiB";   Url = "https://scaleway.testdebit.info/1G.iso";    SizeBytes = 1 * 1024 * 1024 * 1024 },
+        @{ Name = "Scaleway (France - Paris) - 10 GiB";  Url = "https://scaleway.testdebit.info/10G.iso";    SizeBytes = 10 * 1024 * 1024 * 1024 },
+
+        # --- Serveurs Européens (pour variété et fallback) ---
+        @{ Name = "Tele2 (Europe - Anycast) - 100 MiB";  Url = "http://speedtest.tele2.net/100MB.zip";  SizeBytes = 100 * 1024 * 1024 },
+        @{ Name = "Tele2 (Europe - Anycast) - 1 GiB";    Url = "http://speedtest.tele2.net/1GB.zip";    SizeBytes = 1 * 1024 * 1024 * 1024 },
+
+        @{ Name = "ThinkBroadband (UK) - 50 MiB";   Url = "http://ipv4.download.thinkbroadband.com/50MB.zip";  SizeBytes = 50 * 1024 * 1024 },
+        @{ Name = "ThinkBroadband (UK) - 200 MiB";  Url = "http://ipv4.download.thinkbroadband.com/200MB.zip"; SizeBytes = 200 * 1024 * 1024 },
+        @{ Name = "ThinkBroadband (UK) - 512 MiB";  Url = "http://ipv4.download.thinkbroadband.com/512MB.zip"; SizeBytes = 512 * 1024 * 1024 }
+    )
+
+    Write-Host "`nChoisissez un serveur et une taille de fichier pour le test :"
+    for ($i = 0; $i -lt $testFiles.Count; $i++) {
+        # On ajuste l'affichage pour que les numéros correspondent à l'index + 1
+        Write-Host "$($i+1). $($testFiles[$i].Name)"
+    }
+
+    $choiceInput = ""
+    $selectedFile = $null
+
+    while ($true) { # Boucle infinie jusqu'à un choix valide ou Quitter
+        $choiceInput = Read-Host "`nEntrez le numéro de votre choix (1-$($testFiles.Count)), ou 'Q' pour quitter"
+
+        if ($choiceInput -eq 'Q' -or $choiceInput -eq 'q') {
+            Write-Host "Retour au menu principal..." -ForegroundColor Yellow
+            return # Quitte la fonction Start-SpeedTest
+        }
+
+        try {
+            $choiceInt = [int]$choiceInput
+            if ($choiceInt -ge 1 -and $choiceInt -le $testFiles.Count) {
+                $selectedFile = $testFiles[$choiceInt - 1]
+                break # Sort de la boucle while, choix valide
+            } else {
+                Write-Warning "Choix invalide. Veuillez réessayer."
+            }
+        }
+        catch {
+            Write-Warning "Entrée invalide. Veuillez entrer un nombre ou 'Q'."
+        }
+    }
+
+    # Si on arrive ici, $selectedFile est défini
+    $fileUrl = $selectedFile.Url
+    $fileSizeBytes = $selectedFile.SizeBytes
+
+    Write-Host "`nTest en cours avec : $($selectedFile.Name)..." -ForegroundColor Yellow
+
+    $tempFile = [System.IO.Path]::GetTempFileName()
+
+    try {
+        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+
+        # [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+
+        Invoke-WebRequest -Uri $fileUrl -OutFile $tempFile -UseBasicParsing -TimeoutSec 300
+
+        $stopwatch.Stop()
+        $durationSeconds = $stopwatch.Elapsed.TotalSeconds
+
+        if ($durationSeconds -eq 0) {
+            Write-Error "Le téléchargement a été trop rapide ou a échoué (durée nulle)."
+            # [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null # S'assurer de réinitialiser si utilisé
+            if (Test-Path $tempFile) { Remove-Item $tempFile -Force -ErrorAction SilentlyContinue }
+            return
+        }
+
+        $speedMbps = ($fileSizeBytes * 8) / $durationSeconds / 1000000
+
+        Write-Host "------------------------------------" -ForegroundColor Green
+        Write-Host " Résultat du Test de Vitesse" -ForegroundColor Green
+        Write-Host "------------------------------------" -ForegroundColor Green
+        Write-Host "Serveur/Fichier: $($selectedFile.Name)"
+        Write-Host "Taille du fichier: $([math]::Round($fileSizeBytes / (1024*1024), 2)) MiB"
+        Write-Host "Temps de téléchargement: $([math]::Round($durationSeconds, 2)) secondes"
+        Write-Host "Vitesse de téléchargement: $([math]::Round($speedMbps, 2)) Mbps" -ForegroundColor Cyan
+        Write-Host "------------------------------------"
+
+    }
+    catch {
+        Write-Error "Une erreur est survenue pendant le test : $($_.Exception.Message)"
+        if ($_.Exception.InnerException) {
+            Write-Error "Détails de l'erreur interne : $($_.Exception.InnerException.Message)"
+        }
+        Write-Warning "Vérifiez votre connexion internet ou essayez un autre serveur/fichier."
+        Write-Warning "L'URL testée était : $fileUrl"
+    }
+    finally {
+        # [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null
+        if (Test-Path $tempFile) {
+            Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+function Write-Centered {
+    param (
+        [string]$Message,
+        [ConsoleColor]$ForegroundColor = 'White'
+    )
+    $windowWidth = (Get-Host).UI.RawUI.WindowSize.Width
+    $padding = ($windowWidth - $Message.Length) / 2
+    if ($padding -lt 0) { $padding = 0 } # S'assurer que le padding n'est pas négatif pour les lignes très longues
+    Write-Host (" " * [int]$padding + $Message) -ForegroundColor $ForegroundColor
+}
+
+
+#   █████╗ ██╗     ██╗     ██████╗ ███████╗██████╗ ██████╗ ██╗██████╗     ██╗   ██╗████████╗██╗██╗     ███████╗
+#  ██╔══██╗██║     ██║     ██╔══██╗██╔════╝██╔══██╗██╔══██╗██║██╔══██╗    ██║   ██║╚══██╔══╝██║██║     ██╔════╝
+#  ███████║██║     ██║     ██║  ██║█████╗  ██████╔╝██████╔╝██║██║  ██║    ██║   ██║   ██║   ██║██║     ███████╗
+#  ██╔══██║██║     ██║     ██║  ██║██╔══╝  ██╔══██╗██╔══██╗██║██║  ██║    ██║   ██║   ██║   ██║██║     ╚════██║
+#  ██║  ██║███████╗███████╗██████╔╝███████╗██████╔╝██║  ██║██║██████╔╝    ╚██████╔╝   ██║   ██║███████╗███████║
+#  ╚═╝  ╚═╝╚══════╝╚══════╝╚═════╝ ╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝      ╚═════╝    ╚═╝   ╚═╝╚══════╝╚══════╝
+
 # Fonction pour débloquer un lien via l'API Alldebrid
 function Unlock-AlldebridLink {
     param (
@@ -434,130 +589,395 @@ function Start-AlldebridDownload {
     Write-Log "Réussis: $successCount | Échoués: $failCount | Total: $($Links.Count)"
 }
 
-# Fonction pour vérifier la validité de l'API
-<#function Test-ApiValidity {
-    # Vérification simple de l'API
-    $apiUrl = "https://api.alldebrid.com/v4/user/login?agent=$userAgent&apikey=$predefinedApiKey"
+function Get-AlldebridHistory {
+    param (
+        [string]$ApiKey = $predefinedApiKey,
+        [string]$Agent = $userAgent
+    )
+
+    Write-Log "Récupération de l'historique des liens débridés..."
+
+    $apiUrl = "https://api.alldebrid.com/v4/user/history?agent=$Agent&apikey=$ApiKey"
 
     try {
         $response = Invoke-RestMethod -Uri $apiUrl -Method Get
 
         if ($response.status -eq "success") {
-            Write-Host "✅ Connexion API Alldebrid réussie!" -ForegroundColor Green
-            Write-Host "Nom d'utilisateur: $($response.data.user.username)" -ForegroundColor Cyan
+            Write-Log "Historique récupéré avec succès."
 
-            if ($response.data.user.isPremium) {
-                Write-Host "Type de compte: Premium" -ForegroundColor Green
-                Write-Host "Expiration: $($response.data.user.premiumUntil)" -ForegroundColor Cyan
+            if ($response.data.links -and $response.data.links.Count -gt 0) {
+                Write-Host "`n===== Historique des liens débridés =====" -ForegroundColor Cyan
+                foreach ($linkEntry in $response.data.links) {
+                    Write-Host "Lien original: $($linkEntry.link)"
+                    Write-Host "Lien débridé: $($linkEntry.unlockedLink)"
+                    Write-Host "Nom du fichier: $($linkEntry.filename)"
+                    Write-Host "Date: $($linkEntry.addedDate)"
+                    Write-Host "-------------------------------------"
+                }
+                 Write-Host "===== Fin de l'historique =====" -ForegroundColor Cyan
             } else {
-                Write-Host "Type de compte: Gratuit" -ForegroundColor Yellow
+                Write-Host "Aucun lien débridé trouvé dans l'historique." -ForegroundColor Yellow
             }
 
-            return $true
         } else {
-            Write-Host "❌ Erreur avec la clé API: $($response.error.message)" -ForegroundColor Red
-            return $false
+            Write-Log "Erreur lors de la récupération de l'historique: $($response.error.message)"
+             Write-Host "Erreur lors de la récupération de l'historique: $($response.error.message)" -ForegroundColor Red
         }
     } catch {
-        Write-Host "❌ Exception lors de la vérification de l'API: $_" -ForegroundColor Red
-        return $false
+        Write-Log "Exception lors de l'appel à l'API pour l'historique: $_"
+        Write-Host "Une erreur est survenue lors de la récupération de l'historique." -ForegroundColor Red
     }
-}#>
+}
+
+
+#  ███████╗ ██████╗ ██████╗ ███╗   ███╗    ██╗   ██╗██╗
+#  ██╔════╝██╔═══██╗██╔══██╗████╗ ████║    ██║   ██║██║
+#  █████╗  ██║   ██║██████╔╝██╔████╔██║    ██║   ██║██║
+#  ██╔══╝  ██║   ██║██╔══██╗██║╚██╔╝██║    ██║   ██║██║
+#  ██║     ╚██████╔╝██║  ██║██║ ╚═╝ ██║    ╚██████╔╝██║
+#  ╚═╝      ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝     ╚═════╝ ╚═╝
 
 # Interface graphique pour l'entrée des liens
 function Show-DownloadDialog {
+    # Configuration principale de la fenêtre
     $form = New-Object System.Windows.Forms.Form
-    $form.Text = "Téléchargement rapide Alldebrid"
-    $form.Size = New-Object System.Drawing.Size(600, 400)
-    $form.StartPosition = "CenterScreen"
-    $form.FormBorderStyle = "FixedDialog"
-    $form.MaximizeBox = $false
+    $form.Text = "BetterAlldebrid Downloader" # Titre de la fenêtre
+    $form.Size = New-Object System.Drawing.Size(700, 620) # Taille de la fenêtre (augmentée pour le GIF plus grand)
+    $form.StartPosition = "CenterScreen" # Position au centre de l'écran
+    $form.FormBorderStyle = "FixedSingle" # Empêche le redimensionnement
+    $form.MaximizeBox = $false # Désactive le bouton maximiser
+    $form.MinimizeBox = $true # Active le bouton minimiser
+    $form.BackColor = [System.Drawing.ColorTranslator]::FromHtml("#F0F0F0") # Couleur de fond claire
+    $font = New-Object System.Drawing.Font("Segoe UI", 9) # Police par défaut
+    $form.Font = $font
 
-    # Labels
+    # TableLayoutPanel principal pour la disposition générale des éléments majeurs
+    $tableLayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
+    $tableLayoutPanel.Dock = "Fill" # Remplit la fenêtre parente
+    $tableLayoutPanel.ColumnCount = 1 # Une seule colonne pour empiler les GroupBoxes, le label et le bouton
+    $tableLayoutPanel.RowCount = 4 # Rangée pour GroupBox Liens, Rangée pour GroupBox Options, Rangée pour Statut, Rangée pour Bouton Télécharger
+
+    # Styles des colonnes (100% pour la seule colonne)
+    $tableLayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 100)))
+
+    # Styles des rangées (pour répartir l'espace verticalement)
+    $tableLayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60))) # GroupBox "Liens et Catégorie" (prend 60% de l'espace restant)
+    $tableLayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 20))) # GroupBox "Options et Actions" (prend 20% de l'espace restant)
+    $tableLayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 30))) # Label de statut (hauteur fixe de 30 pixels)
+    $tableLayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 55))) # Bouton "Télécharger" (hauteur fixe de 55 pixels)
+
+    $tableLayoutPanel.Padding = New-Object System.Windows.Forms.Padding(15) # Marge intérieure pour l'espace autour des éléments
+    $tableLayoutPanel.CellBorderStyle = "None" # Pas de bordures entre les cellules
+    $form.Controls.Add($tableLayoutPanel) # Ajoute le TableLayoutPanel à la fenêtre
+
+    # --- GroupBox pour les liens et la catégorie ---
+    $groupBoxLinks = New-Object System.Windows.Forms.GroupBox
+    $groupBoxLinks.Text = "Liens de Téléchargement et Catégorie" # Titre du groupe
+    $groupBoxLinks.Dock = "Fill" # Remplit l'espace alloué dans le TableLayoutPanel principal
+    $groupBoxLinks.Padding = New-Object System.Windows.Forms.Padding(10) # Espacement interne
+
+    # TableLayoutPanel interne pour organiser les contrôles dans le GroupBox "Links"
+    $innerTableLinks = New-Object System.Windows.Forms.TableLayoutPanel
+    $innerTableLinks.Dock = "Fill" # Remplit le GroupBox
+    $innerTableLinks.ColumnCount = 2 # Colonne 1: Texte (Liens, Catégorie), Colonne 2: Bouton Coller + GIF
+    $innerTableLinks.RowCount = 5 # Rangée 1: Label liens, Rangée 2: Textbox liens, Rangée 3: Espace pour GIF, Rangée 4: Label catégorie, Rangée 5: Textbox catégorie
+
+    $innerTableLinks.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 75))) # Colonne principale (75%)
+    $innerTableLinks.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25))) # Colonne pour le bouton Coller et le GIF (25%)
+
+    $innerTableLinks.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 25))) # Label liens (hauteur fixe)
+    $innerTableLinks.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 100))) # Textbox liens (prend le reste de l'espace vertical)
+    $innerTableLinks.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 150))) # Nouvelle rangée pour le GIF (hauteur augmentée)
+    $innerTableLinks.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 25))) # Label catégorie (hauteur fixe)
+    $innerTableLinks.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 30))) # Textbox catégorie (hauteur fixe)
+
+    $groupBoxLinks.Controls.Add($innerTableLinks) # Ajoute le TableLayoutPanel interne au GroupBox
+
+    # Label "Collez vos liens"
     $labelLinks = New-Object System.Windows.Forms.Label
-    $labelLinks.Location = New-Object System.Drawing.Point(20, 20)
-    $labelLinks.Size = New-Object System.Drawing.Size(560, 20)
-    $labelLinks.Text = "Collez vos liens (un par ligne):"
-    $form.Controls.Add($labelLinks)
+    $labelLinks.Text = "Collez vos liens (un par ligne) avec SHIFT/ENTER:"
+    $labelLinks.AutoSize = $true # Ajuste la taille automatiquement
+    $innerTableLinks.Controls.Add($labelLinks, 0, 0) # Col 0, Row 0
+    $innerTableLinks.SetColumnSpan($labelLinks, 2) # S'étend sur les deux colonnes
 
     # Zone de texte multi-lignes pour les liens
     $textBoxLinks = New-Object System.Windows.Forms.TextBox
-    $textBoxLinks.Location = New-Object System.Drawing.Point(20, 40)
-    $textBoxLinks.Size = New-Object System.Drawing.Size(560, 200)
-    $textBoxLinks.Multiline = $true
-    $textBoxLinks.ScrollBars = "Vertical"
-    $form.Controls.Add($textBoxLinks)
+    $textBoxLinks.Multiline = $true # Permet plusieurs lignes
+    $textBoxLinks.ScrollBars = "Vertical" # Ajoute une barre de défilement verticale si nécessaire
+    $textBoxLinks.Dock = "Fill" # Remplit l'espace alloué
+    $innerTableLinks.Controls.Add($textBoxLinks, 0, 1) # Col 0, Row 1
+    $innerTableLinks.SetRowSpan($textBoxLinks, 2)
+
+    # Bouton "Coller"
+    $buttonPaste = New-Object System.Windows.Forms.Button
+    $buttonPaste.Text = "Coller"
+    $buttonPaste.BackColor = [System.Drawing.ColorTranslator]::FromHtml("#00A0B0") # Couleur vive
+    $buttonPaste.ForeColor = [System.Drawing.Color]::White # Texte blanc
+    $buttonPaste.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat # Style plat
+    $buttonPaste.FlatAppearance.BorderSize = 0 # Pas de bordure
+    $buttonPaste.Cursor = [System.Windows.Forms.Cursors]::Hand # Curseur main au survol
+    $buttonPaste.Dock = "Top" # Ancré en haut pour s'aligner avec le haut de la textbox
+    $buttonPaste.Margin = New-Object System.Windows.Forms.Padding(5,0,0,0) # Petite marge à gauche et pas de marge en haut
+    $buttonPaste.Add_Click({
+        # Action au clic : coller le contenu du presse-papiers
+        if ([System.Windows.Forms.Clipboard]::ContainsText()) {
+            $textBoxLinks.Text = [System.Windows.Forms.Clipboard]::GetText()
+            $statusLabel.Text = "Contenu du presse-papiers collé."
+            $statusLabel.ForeColor = [System.Drawing.Color]::Gray
+        } else {
+            $statusLabel.Text = "Le presse-papiers est vide ou ne contient pas de texte."
+            $statusLabel.ForeColor = [System.Drawing.Color]::OrangeRed
+        }
+    })
+    $innerTableLinks.Controls.Add($buttonPaste, 1, 1) # Col 1, Row 1 (à côté de la textbox des liens)
+
+    # --- PictureBox pour le GIF ---
+    $pictureBoxGif = New-Object System.Windows.Forms.PictureBox
+    $pictureBoxGif.Dock = "Fill" # Remplit l'espace de la cellule
+    $pictureBoxGif.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom # Redimensionne l'image pour tenir dans le contrôle
+
+    # Chemin où le GIF sera temporairement sauvegardé
+    $gifLocalPath = Join-Path ([System.IO.Path]::GetTempPath()) "alldebrid_paste_gif.gif"
+
+    try {
+        # URL du GIF sur le dépôt GitHub (remplacez par l'URL de votre GIF)
+        # Assurez-vous que c'est l'URL RAW du fichier sur GitHub
+        $gifUrl = "https://raw.githubusercontent.com/Pooueto/ascci-art/main/urssCat.gif" # Exemple d'URL RAW
+
+        # Télécharger le GIF
+        $webClient = New-Object System.Net.WebClient
+        $gifBytes = $webClient.DownloadData($gifUrl)
+
+        if ($null -ne $gifBytes -and $gifBytes.Length -gt 0) {
+            # Sauvegarder le GIF localement
+            [System.IO.File]::WriteAllBytes($gifLocalPath, $gifBytes)
+
+            # Charger l'image depuis le fichier local
+            # Utiliser FromFile permet à GDI+ de gérer le fichier directement
+            $pictureBoxGif.Image = [System.Drawing.Image]::FromFile($gifLocalPath)
+
+            # Optionnel : Supprimer le fichier temporaire après le chargement
+            # Remove-Item $gifLocalPath -Force -ErrorAction SilentlyContinue
+
+        } else {
+            Write-Host "Erreur lors du chargement du GIF : Les données téléchargées sont vides ou nulles." -ForegroundColor Red
+            $pictureBoxGif.Visible = $false # Cacher la PictureBox si les données sont vides
+        }
+
+    } catch {
+        Write-Host "Erreur lors du chargement du GIF depuis GitHub/local : $($_.Exception.Message)" -ForegroundColor Red
+        # Cacher la PictureBox en cas d'erreur de chargement
+        $pictureBoxGif.Visible = $false
+        # Assurez-vous que le fichier temporaire est supprimé même en cas d'erreur
+        if (Test-Path $gifLocalPath) {
+             Remove-Item $gifLocalPath -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    $innerTableLinks.Controls.Add($pictureBoxGif, 1, 2) # Col 1, Row 2 (sous le bouton Coller)
+    # --- Fin PictureBox GIF ---
+
 
     # Label pour la catégorie
     $labelCategory = New-Object System.Windows.Forms.Label
-    $labelCategory.Location = New-Object System.Drawing.Point(20, 250)
-    $labelCategory.Size = New-Object System.Drawing.Size(200, 20)
     $labelCategory.Text = "Catégorie (facultatif):"
-    $form.Controls.Add($labelCategory)
+    $labelCategory.AutoSize = $true
+    $innerTableLinks.Controls.Add($labelCategory, 0, 3) # Col 0, Row 3 (ajusté à cause de la nouvelle rangée pour le GIF)
+    $innerTableLinks.SetColumnSpan($labelCategory, 2) # S'étend sur les deux colonnes
 
     # Textbox pour la catégorie
     $textBoxCategory = New-Object System.Windows.Forms.TextBox
-    $textBoxCategory.Location = New-Object System.Drawing.Point(20, 270)
-    $textBoxCategory.Size = New-Object System.Drawing.Size(200, 20)
-    $form.Controls.Add($textBoxCategory)
+    $textBoxCategory.Anchor = "Left, Right" # Ancré à gauche et à droite pour s'adapter à la largeur
+    $innerTableLinks.Controls.Add($textBoxCategory, 0, 4) # Col 0, Row 4 (ajusté)
+    $innerTableLinks.SetColumnSpan($textBoxCategory, 2) # S'étend sur les deux colonnes
 
-    # Bouton pour choisir le dossier
-    $buttonFolder = New-Object System.Windows.Forms.Button
-    $buttonFolder.Location = New-Object System.Drawing.Point(230, 270)
-    $buttonFolder.Size = New-Object System.Drawing.Size(200, 23)
-    $buttonFolder.Text = "Changer le dossier de destination"
-    # Modification dans le bouton de l'interface graphique
-    $buttonFolder.Add_Click({
-        $selectedFolder = Select-Folder -Description "Choisissez le dossier de destination pour les téléchargements" -InitialDirectory $script:currentDownloadFolder
-        if ($selectedFolder) {
-            $script:currentDownloadFolder = $selectedFolder
-            # Ne pas modifier l'emplacement du fichier de log
-            Save-Config
-            $labelFolder.Text = "Dossier: $script:currentDownloadFolder"
-        }
-    })
-    $form.Controls.Add($buttonFolder)
+    # Ajoute le GroupBox "Links" au TableLayoutPanel principal
+    $tableLayoutPanel.Controls.Add($groupBoxLinks, 0, 0)
+
+
+    # --- GroupBox pour les options et actions ---
+    $groupBoxActions = New-Object System.Windows.Forms.GroupBox
+    $groupBoxActions.Text = "Options et Actions" # Titre du groupe
+    $groupBoxActions.Dock = "Fill" # Remplit l'espace alloué dans le TableLayoutPanel principal
+    $groupBoxActions.Padding = New-Object System.Windows.Forms.Padding(10) # Espacement interne
+
+    # TableLayoutPanel interne pour organiser les contrôles dans le GroupBox "Actions"
+    $innerTableActions = New-Object System.Windows.Forms.TableLayoutPanel
+    $innerTableActions.Dock = "Fill" # Remplit le GroupBox
+    $innerTableActions.ColumnCount = 3 # Colonnes pour Changer dossier, Ouvrir dossier, Vider liens
+    $innerTableActions.RowCount = 2 # Rangée 1: Label dossier, Rangée 2: Boutons
+
+    # Styles des colonnes ajustés pour donner un peu plus d'espace aux boutons
+    $innerTableActions.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 30))) # 30% de la largeur pour le bouton "Changer dossier"
+    $innerTableActions.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 40))) # 40% de la largeur pour le bouton "Ouvrir dossier" (celui du milieu)
+    $innerTableActions.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 30))) # 30% de la largeur pour le bouton "Vider liens"
+
+    $innerTableActions.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 25))) # Label dossier actuel (hauteur fixe)
+    $innerTableActions.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 100))) # Ligne des boutons (prend le reste de l'espace)
+
+    $groupBoxActions.Controls.Add($innerTableActions) # Ajoute le TableLayoutPanel interne au GroupBox
 
     # Label pour afficher le dossier actuel
     $labelFolder = New-Object System.Windows.Forms.Label
-    $labelFolder.Location = New-Object System.Drawing.Point(20, 300)
-    $labelFolder.Size = New-Object System.Drawing.Size(560, 20)
     $labelFolder.Text = "Dossier: $script:currentDownloadFolder"
-    $form.Controls.Add($labelFolder)
+    $labelFolder.AutoSize = $true
+    $innerTableActions.Controls.Add($labelFolder, 0, 0) # Col 0, Row 0
+    $innerTableActions.SetColumnSpan($labelFolder, 3) # S'étend sur les 3 colonnes
 
-    # Bouton de téléchargement
+    # Bouton "Changer le dossier"
+    $buttonFolder = New-Object System.Windows.Forms.Button
+    $buttonFolder.Text = "Changer dossier"
+    $buttonFolder.BackColor = [System.Drawing.ColorTranslator]::FromHtml("#0078D4") # Bleu Windows
+    $buttonFolder.ForeColor = [System.Drawing.Color]::White
+    $buttonFolder.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat # Style plat
+    $buttonFolder.FlatAppearance.BorderSize = 0 # Pas de bordure
+    $buttonFolder.Cursor = [System.Windows.Forms.Cursors]::Hand # Curseur main au survol
+    $buttonFolder.Dock = "Fill" # Remplit l'espace de la cellule
+    $buttonFolder.Margin = New-Object System.Windows.Forms.Padding(5) # Ajoute des marges autour du bouton
+    $buttonFolder.Add_Click({
+        # Action au clic : ouvrir la boîte de dialogue de sélection de dossier
+        $selectedFolder = Select-Folder -Description "Choisissez le dossier de destination pour les téléchargements" -InitialDirectory $script:currentDownloadFolder
+        if ($selectedFolder) {
+            $script:currentDownloadFolder = $selectedFolder
+            Save-Config # Sauvegarde le nouveau dossier dans la configuration
+            $labelFolder.Text = "Dossier: $script:currentDownloadFolder" # Met à jour le label
+            $statusLabel.Text = "Dossier de téléchargement mis à jour."
+            $statusLabel.ForeColor = [System.Drawing.Color]::Green
+        }
+    })
+    $innerTableActions.Controls.Add($buttonFolder, 0, 1) # Col 0, Row 1
+
+    # Bouton "Ouvrir dossier"
+    $buttonOpenFolder = New-Object System.Windows.Forms.Button
+    $buttonOpenFolder.Text = "Ouvrir dossier"
+    $buttonOpenFolder.BackColor = [System.Drawing.ColorTranslator]::FromHtml("#4CAF50") # Vert
+    $buttonOpenFolder.ForeColor = [System.Drawing.Color]::White
+    $buttonOpenFolder.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat # Style plat
+    $buttonOpenFolder.FlatAppearance.BorderSize = 0 # Pas de bordure
+    $buttonOpenFolder.Cursor = [System.Windows.Forms.Cursors]::Hand # Curseur main au survol
+    $buttonOpenFolder.Dock = "Fill" # Remplit l'espace de la cellule
+    $buttonOpenFolder.Margin = New-Object System.Windows.Forms.Padding(5) # Ajoute des marges
+    $buttonOpenFolder.Add_Click({
+        # Action au clic : ouvrir le dossier de téléchargement actuel dans l'explorateur
+        if (Test-Path -Path $script:currentDownloadFolder) {
+            Invoke-Item $script:currentDownloadFolder
+            $statusLabel.Text = "Dossier de téléchargement ouvert."
+            $statusLabel.ForeColor = [System.Drawing.Color]::Gray
+        } else {
+            $statusLabel.Text = "Le dossier de téléchargement n'existe pas."
+            $statusLabel.ForeColor = [System.Drawing.Color]::OrangeRed
+        }
+    })
+    $innerTableActions.Controls.Add($buttonOpenFolder, 1, 1) # Col 1, Row 1
+
+    # Bouton "Vider les liens"
+    $buttonClear = New-Object System.Windows.Forms.Button
+    $buttonClear.Text = "Vider liens"
+    $buttonClear.BackColor = [System.Drawing.ColorTranslator]::FromHtml("#666666") # Gris foncé
+    $buttonClear.ForeColor = [System.Drawing.Color]::White
+    $buttonClear.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat # Style plat
+    $buttonClear.FlatAppearance.BorderSize = 0 # Pas de bordure
+    $buttonClear.Cursor = [System.Windows.Forms.Cursors]::Hand # Curseur main au survol
+    $buttonClear.Dock = "Fill" # Remplit l'espace de la cellule
+    $buttonClear.Margin = New-Object System.Windows.Forms.Padding(5) # Ajoute des marges
+    $buttonClear.Add_Click({
+        # Action au clic : effacer le contenu de la zone de texte des liens
+        $textBoxLinks.Clear()
+        $statusLabel.Text = "Zone de liens vidée."
+        $statusLabel.ForeColor = [System.Drawing.Color]::Gray
+    })
+    $innerTableActions.Controls.Add($buttonClear, 2, 1) # Col 2, Row 1
+
+    # Ajoute le GroupBox "Actions" au TableLayoutPanel principal
+    $tableLayoutPanel.Controls.Add($groupBoxActions, 0, 1)
+
+
+    # Label de statut/feedback (placé directement sur le TableLayoutPanel principal)
+    $statusLabel = New-Object System.Windows.Forms.Label
+    $statusLabel.Text = "Prêt." # Texte initial
+    $statusLabel.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Italic) # Police italique
+    $statusLabel.ForeColor = [System.Drawing.Color]::Gray # Couleur grise
+    $statusLabel.Dock = "Fill" # Remplit l'espace
+    $statusLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter # Centre le texte
+    $tableLayoutPanel.Controls.Add($statusLabel, 0, 2) # Col 0, Row 2
+
+
+    # Bouton de téléchargement principal (placé directement sur le TableLayoutPanel principal)
     $buttonDownload = New-Object System.Windows.Forms.Button
-    $buttonDownload.Location = New-Object System.Drawing.Point(440, 270)
-    $buttonDownload.Size = New-Object System.Drawing.Size(140, 23)
-    $buttonDownload.Text = "Télécharger"
-    $buttonDownload.BackColor = [System.Drawing.Color]::FromArgb(0, 120, 212)
-    $buttonDownload.ForeColor = [System.Drawing.Color]::White
-    $buttonDownload.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $buttonDownload.Text = "Télécharger" # Texte du bouton
+    $buttonDownload.Size = New-Object System.Drawing.Size(140, 35) # Taille suggérée
+    $buttonDownload.BackColor = [System.Drawing.ColorTranslator]::FromHtml("#0078D4") # Bleu Windows
+    $buttonDownload.ForeColor = [System.Drawing.Color]::White # Texte blanc
+    $buttonDownload.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat # Style plat
+    $buttonDownload.FlatAppearance.BorderSize = 0 # Pas de bordure
+    $buttonDownload.Cursor = [System.Windows.Forms.Cursors]::Hand # Curseur main au survol
+    $buttonDownload.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold) # Police en gras
+    $buttonDownload.Dock = "Fill" # Remplit l'espace de la cellule
+    $buttonDownload.Margin = New-Object System.Windows.Forms.Padding(10, 5, 10, 5) # Marge autour du bouton
     $buttonDownload.Add_Click({
-        $links = $textBoxLinks.Text -split "`r`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        # Action au clic : lancer le processus de téléchargement
+        $links = $textBoxLinks.Text -split "`r`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } # Récupère les liens (un par ligne)
 
         if ($links.Count -eq 0) {
-            [System.Windows.Forms.MessageBox]::Show("Veuillez entrer au moins un lien.", "Erreur", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
-            return
+            $statusLabel.Text = "Veuillez entrer au moins un lien."
+            $statusLabel.ForeColor = [System.Drawing.Color]::Red
+            return # Sortie si aucun lien n'est entré
         }
 
-        $form.Hide()
+        # --- Désactiver tous les contrôles interactifs pendant le téléchargement ---
+        $textBoxLinks.Enabled = $false
+        $textBoxCategory.Enabled = $false
+        $buttonFolder.Enabled = $false
+        $buttonOpenFolder.Enabled = $false
+        $buttonClear.Enabled = $false
+        $buttonPaste.Enabled = $false
+        $buttonDownload.Enabled = $false
+        $statusLabel.Text = "Téléchargement en cours... Veuillez patienter."
+        $statusLabel.ForeColor = [System.Drawing.Color]::Blue
 
-        # Démarrer le téléchargement
+        # Important : Permettre à l'UI de se rafraîchir et d'afficher les changements d'état
+        # avant de lancer la tâche potentiellement longue.
+        [System.Windows.Forms.Application]::DoEvents()
+
+        # Démarrer le téléchargement (cette fonction bloque l'UI si elle est longue)
         Start-AlldebridDownload -Links $links -Category $textBoxCategory.Text
 
+        # --- Réactiver les contrôles après la fin du téléchargement ---
+        $textBoxLinks.Enabled = $true
+        $textBoxCategory.Enabled = $true
+        $buttonFolder.Enabled = $true
+        $buttonOpenFolder.Enabled = $true
+        $buttonClear.Enabled = $true
+        $buttonPaste.Enabled = $true
+        $buttonDownload.Enabled = $true
+
+        # Mettre à jour le statut final
+        $statusLabel.Text = "Opération terminée. Consultez les logs pour plus de détails."
+        $statusLabel.ForeColor = [System.Drawing.Color]::Green
+
+        # Afficher un message de fin à l'utilisateur
         [System.Windows.Forms.MessageBox]::Show("Opération terminée. Consultez les logs pour plus de détails.", "Téléchargement terminé", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-
-        $form.Close()
     })
-    $form.Controls.Add($buttonDownload)
+    $tableLayoutPanel.Controls.Add($buttonDownload, 0, 3) # Col 0, Row 3
 
-    # Centrer la fenêtre
+    # Définir le bouton de téléchargement comme bouton par défaut (press Enter to activate)
+    $form.AcceptButton = $buttonDownload
+
+    # Centrer la fenêtre lors de l'affichage et l'activer
     $form.Add_Shown({$form.Activate()})
 
-    # Afficher la fenêtre
+    # Afficher la fenêtre et attendre qu'elle soit fermée
     $form.ShowDialog() | Out-Null
 }
+
+
+
+#  ██╗   ██╗██╗      ██████╗     ██████╗ ██████╗ ███╗   ██╗███████╗
+#  ██║   ██║██║     ██╔════╝    ██╔════╝██╔═══██╗████╗  ██║██╔════╝
+#  ██║   ██║██║     ██║         ██║     ██║   ██║██╔██╗ ██║█████╗
+#  ╚██╗ ██╔╝██║     ██║         ██║     ██║   ██║██║╚██╗██║██╔══╝
+#   ╚████╔╝ ███████╗╚██████╗    ╚██████╗╚██████╔╝██║ ╚████║██║
+#    ╚═══╝  ╚══════╝ ╚═════╝     ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝
 
 # Fonction pour détecter l'installation de VLC
 function Find-VlcPath {
@@ -626,6 +1046,14 @@ function Start-VlcStreaming {
         return $false
     }
 }
+
+
+#  ████████╗ ██████╗ ██████╗ ██████╗ ███████╗███╗   ██╗████████╗     ██████╗ ███████╗███████╗████████╗██╗ ██████╗ ███╗   ██╗
+#  ╚══██╔══╝██╔═══██╗██╔══██╗██╔══██╗██╔════╝████╗  ██║╚══██╔══╝    ██╔════╝ ██╔════╝██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
+#     ██║   ██║   ██║██████╔╝██████╔╝█████╗  ██╔██╗ ██║   ██║       ██║  ███╗█████╗  ███████╗   ██║   ██║██║   ██║██╔██╗ ██║
+#     ██║   ██║   ██║██╔══██╗██╔══██╗██╔══╝  ██║╚██╗██║   ██║       ██║   ██║██╔══╝  ╚════██║   ██║   ██║██║   ██║██║╚██╗██║
+#     ██║   ╚██████╔╝██║  ██║██║  ██║███████╗██║ ╚████║   ██║       ╚██████╔╝███████╗███████║   ██║   ██║╚██████╔╝██║ ╚████║
+#     ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝        ╚═════╝ ╚══════╝╚══════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
 # Fonction pour télécharger un torrent via l'API Alldebrid
 function Add-AlldebridTorrent {
@@ -791,12 +1219,6 @@ function Show-TorrentManager {
 
     $torrents = Get-AllTorrents
 
-    #if ($null -eq $torrents) {
-    #    Write-Host "Impossible de récupérer la liste des torrents." -ForegroundColor Red
-    #    Pause
-    #    return
-    #}
-
     if ($torrents.Count -eq 0) {
         Write-Host "Aucun torrent en cours." -ForegroundColor Yellow
         Write-Host ""
@@ -818,7 +1240,7 @@ function Show-TorrentManager {
         # Afficher la liste des torrents
         Write-Host ""
         Write-Host "ID  | Statut       | Progression | Nom"
-        Write-Host "----|--------------+------------+-------------------------"
+        Write-Host "----|--------------+-------------+-------------------------"
 
         $i = 1
         foreach ($torrent in $torrents) {
@@ -1041,27 +1463,6 @@ function Download-TorrentFiles {
         return
     }
 
-    # Vérifier si le torrent est prêt à être téléchargé
-    <# if ($updatedTorrent.status -ne "downloaded" -or $null -eq $updatedTorrent.links -or $updatedTorrent.links.Count -eq 0) {
-        Write-Host "Ce torrent n'est pas encore prêt à être téléchargé." -ForegroundColor Yellow
-        if ($updatedTorrent.status -eq "downloading") {
-            Write-Host "Statut actuel: Téléchargement en cours ($($updatedTorrent.processing.progress)%)"
-
-            $waitForDownload = Read-Host "Voulez-vous attendre la fin du téléchargement? (O/N)"
-            if ($waitForDownload -eq "O") {
-                Wait-ForTorrentCompletion -MagnetId $updatedTorrent.id
-                # Récupérer à nouveau le torrent après l'attente
-                $updatedTorrent = Get-TorrentStatus -MagnetId $Torrent.id
-            } else {
-                Pause
-                return
-            }
-        } else {
-            Pause
-            return
-        }
-    } #>
-
     Clear-Host
     Write-Host "===== Téléchargement des fichiers du torrent =====" -ForegroundColor Cyan
     Write-Host ""
@@ -1217,41 +1618,13 @@ function Wait-ForTorrentCompletion {
     Pause
 }
 
-# Fonction utilitaire pour formater la taille des fichiers
-function Format-Size {
-    param (
-        [Parameter(Mandatory=$true)]
-        [double]$Bytes
-    )
 
-    if ($Bytes -lt 1KB) {
-        return "$Bytes B"
-    }
-    elseif ($Bytes -lt 1MB) {
-        return "{0:N2} KB" -f ($Bytes / 1KB)
-    }
-    elseif ($Bytes -lt 1GB) {
-        return "{0:N2} MB" -f ($Bytes / 1MB)
-    }
-    elseif ($Bytes -lt 1TB) {
-        return "{0:N2} GB" -f ($Bytes / 1GB)
-    }
-    else {
-        return "{0:N2} TB" -f ($Bytes / 1TB)
-    }
-}
-
-# Fonction pour supprimer les caractères invalides dans les noms de fichiers
-function Remove-InvalidFileNameChars {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$Name
-    )
-
-    $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join ''
-    $re = "[{0}]" -f [RegEx]::Escape($invalidChars)
-    return ($Name -replace $re, '_')
-}
+#  ███████╗ █████╗ ███████╗████████╗███████╗██████╗     ███████╗ ██████╗  ██████╗ ███████╗
+#  ██╔════╝██╔══██╗██╔════╝╚══██╔══╝██╔════╝██╔══██╗    ██╔════╝██╔════╝ ██╔════╝ ██╔════╝
+#  █████╗  ███████║███████╗   ██║   █████╗  ██████╔╝    █████╗  ██║  ███╗██║  ███╗███████╗
+#  ██╔══╝  ██╔══██║╚════██║   ██║   ██╔══╝  ██╔══██╗    ██╔══╝  ██║   ██║██║   ██║╚════██║
+#  ███████╗██║  ██║███████║   ██║   ███████╗██║  ██║    ███████╗╚██████╔╝╚██████╔╝███████║
+#  ╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝    ╚══════╝ ╚═════╝  ╚═════╝ ╚══════╝
 
 function Set-DesktopWallpaper {
     param (
@@ -1295,115 +1668,6 @@ function Set-DesktopWallpaper {
     } catch {
         Write-Log "Erreur lors du changement du fond d'écran: $_" -NoConsole
         Write-Host "Une erreur est survenue lors du changement du fond d'écran." -ForegroundColor Red
-    }
-}
-
-# Fonction pour effectuer un test de vitesse de téléchargement avec affichage de la progression et URLs alternatives
-function Start-SpeedTest {
-    Write-Host "------------------------------------"
-    Write-Host " Test de Vitesse Internet (Download) "
-    Write-Host "------------------------------------" -ForegroundColor Green
-
-    $testFiles = @(
-        # --- Serveurs Français ---
-        @{ Name = "OVH (France - proof.ovh.net) - 100 MiB";  Url = "https://proof.ovh.net/files/100Mb.dat";  SizeBytes = 100 * 1024 * 1024 },
-        @{ Name = "OVH (France - proof.ovh.net) - 1 GiB";   Url = "https://proof.ovh.net/files/1Gb.dat";    SizeBytes = 1 * 1024 * 1024 * 1024 },
-        @{ Name = "OVH (France - proof.ovh.net) - 10 GiB";  Url = "https://proof.ovh.net/files/10Gb.dat";   SizeBytes = 10 * 1024 * 1024 * 1024 },
-
-        @{ Name = "Scaleway (France - Paris) - 100 MiB"; Url = "https://scaleway.testdebit.info/100M.iso"; SizeBytes = 100 * 1024 * 1024 },
-        @{ Name = "Scaleway (France - Paris) - 1 GiB";   Url = "https://scaleway.testdebit.info/1G.iso";    SizeBytes = 1 * 1024 * 1024 * 1024 },
-        @{ Name = "Scaleway (France - Paris) - 10 GiB";  Url = "https://scaleway.testdebit.info/10G.iso";    SizeBytes = 10 * 1024 * 1024 * 1024 },
-
-        # --- Serveurs Européens (pour variété et fallback) ---
-        @{ Name = "Tele2 (Europe - Anycast) - 100 MiB";  Url = "http://speedtest.tele2.net/100MB.zip";  SizeBytes = 100 * 1024 * 1024 },
-        @{ Name = "Tele2 (Europe - Anycast) - 1 GiB";    Url = "http://speedtest.tele2.net/1GB.zip";    SizeBytes = 1 * 1024 * 1024 * 1024 },
-
-        @{ Name = "ThinkBroadband (UK) - 50 MiB";   Url = "http://ipv4.download.thinkbroadband.com/50MB.zip";  SizeBytes = 50 * 1024 * 1024 },
-        @{ Name = "ThinkBroadband (UK) - 200 MiB";  Url = "http://ipv4.download.thinkbroadband.com/200MB.zip"; SizeBytes = 200 * 1024 * 1024 },
-        @{ Name = "ThinkBroadband (UK) - 512 MiB";  Url = "http://ipv4.download.thinkbroadband.com/512MB.zip"; SizeBytes = 512 * 1024 * 1024 }
-    )
-
-    Write-Host "`nChoisissez un serveur et une taille de fichier pour le test :"
-    for ($i = 0; $i -lt $testFiles.Count; $i++) {
-        # On ajuste l'affichage pour que les numéros correspondent à l'index + 1
-        Write-Host "$($i+1). $($testFiles[$i].Name)"
-    }
-
-    $choiceInput = ""
-    $selectedFile = $null
-
-    while ($true) { # Boucle infinie jusqu'à un choix valide ou Quitter
-        $choiceInput = Read-Host "`nEntrez le numéro de votre choix (1-$($testFiles.Count)), ou 'Q' pour quitter"
-
-        if ($choiceInput -eq 'Q' -or $choiceInput -eq 'q') {
-            Write-Host "Retour au menu principal..." -ForegroundColor Yellow
-            return # Quitte la fonction Start-SpeedTest
-        }
-
-        try {
-            $choiceInt = [int]$choiceInput
-            if ($choiceInt -ge 1 -and $choiceInt -le $testFiles.Count) {
-                $selectedFile = $testFiles[$choiceInt - 1]
-                break # Sort de la boucle while, choix valide
-            } else {
-                Write-Warning "Choix invalide. Veuillez réessayer."
-            }
-        }
-        catch {
-            Write-Warning "Entrée invalide. Veuillez entrer un nombre ou 'Q'."
-        }
-    }
-
-    # Si on arrive ici, $selectedFile est défini
-    $fileUrl = $selectedFile.Url
-    $fileSizeBytes = $selectedFile.SizeBytes
-
-    Write-Host "`nTest en cours avec : $($selectedFile.Name)..." -ForegroundColor Yellow
-
-    $tempFile = [System.IO.Path]::GetTempFileName()
-
-    try {
-        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-
-        # [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
-
-        Invoke-WebRequest -Uri $fileUrl -OutFile $tempFile -UseBasicParsing -TimeoutSec 300
-
-        $stopwatch.Stop()
-        $durationSeconds = $stopwatch.Elapsed.TotalSeconds
-
-        if ($durationSeconds -eq 0) {
-            Write-Error "Le téléchargement a été trop rapide ou a échoué (durée nulle)."
-            # [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null # S'assurer de réinitialiser si utilisé
-            if (Test-Path $tempFile) { Remove-Item $tempFile -Force -ErrorAction SilentlyContinue }
-            return
-        }
-
-        $speedMbps = ($fileSizeBytes * 8) / $durationSeconds / 1000000
-
-        Write-Host "------------------------------------" -ForegroundColor Green
-        Write-Host " Résultat du Test de Vitesse" -ForegroundColor Green
-        Write-Host "------------------------------------" -ForegroundColor Green
-        Write-Host "Serveur/Fichier: $($selectedFile.Name)"
-        Write-Host "Taille du fichier: $([math]::Round($fileSizeBytes / (1024*1024), 2)) MiB"
-        Write-Host "Temps de téléchargement: $([math]::Round($durationSeconds, 2)) secondes"
-        Write-Host "Vitesse de téléchargement: $([math]::Round($speedMbps, 2)) Mbps" -ForegroundColor Cyan
-        Write-Host "------------------------------------"
-
-    }
-    catch {
-        Write-Error "Une erreur est survenue pendant le test : $($_.Exception.Message)"
-        if ($_.Exception.InnerException) {
-            Write-Error "Détails de l'erreur interne : $($_.Exception.InnerException.Message)"
-        }
-        Write-Warning "Vérifiez votre connexion internet ou essayez un autre serveur/fichier."
-        Write-Warning "L'URL testée était : $fileUrl"
-    }
-    finally {
-        # [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null
-        if (Test-Path $tempFile) {
-            Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
-        }
     }
 }
 
@@ -1454,17 +1718,13 @@ function Play-AsciiAnimation {
             }
 
             foreach ($frame in $frames) {
-                Clear-Host # Efface la console à chaque nouvelle frame
-
-                # Affiche chaque ligne de la frame actuelle
+                Clear-Host
                 foreach ($line in $frame) {
-                    # NOTE : La fonction 'Write-Centered' n'est pas incluse ici.
-                    # Assurez-vous qu'elle est définie ailleurs dans votre script,
-                    # ou remplacez-la par une logique de centrage si nécessaire.
+
                     Write-Centered -Message $line
                 }
 
-                Start-Sleep -Milliseconds $AnimationDelayMs # Attend avant d'afficher la frame suivante
+                Start-Sleep -Milliseconds $AnimationDelayMs
             }
 
             # Incrémenter le compteur de boucle si ce n'est pas une boucle infinie
@@ -1477,21 +1737,16 @@ function Play-AsciiAnimation {
         Write-Error "Erreur lors du traitement ou de l'affichage de l'animation '$AnimationName' : $($_.Exception.Message)"
     }
     finally {
-        # Optionnel : Nettoyer le fichier JSON téléchargé après l'animation
-        # Remove-Item $jsonFilePath -ErrorAction SilentlyContinue
     }
 }
 
-function Write-Centered {
-    param (
-        [string]$Message,
-        [ConsoleColor]$ForegroundColor = 'White'
-    )
-    $windowWidth = (Get-Host).UI.RawUI.WindowSize.Width
-    $padding = ($windowWidth - $Message.Length) / 2
-    if ($padding -lt 0) { $padding = 0 } # S'assurer que le padding n'est pas négatif pour les lignes très longues
-    Write-Host (" " * [int]$padding + $Message) -ForegroundColor $ForegroundColor
-}
+
+#  ███╗   ███╗ █████╗ ██╗███╗   ██╗    ███╗   ███╗███████╗███╗   ██╗██╗   ██╗
+#  ████╗ ████║██╔══██╗██║████╗  ██║    ████╗ ████║██╔════╝████╗  ██║██║   ██║
+#  ██╔████╔██║███████║██║██╔██╗ ██║    ██╔████╔██║█████╗  ██╔██╗ ██║██║   ██║
+#  ██║╚██╔╝██║██╔══██║██║██║╚██╗██║    ██║╚██╔╝██║██╔══╝  ██║╚██╗██║██║   ██║
+#  ██║ ╚═╝ ██║██║  ██║██║██║ ╚████║    ██║ ╚═╝ ██║███████╗██║ ╚████║╚██████╔╝
+#  ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝    ╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝ ╚═════╝
 
 # Interface simple pour l'entrée des liens (console)
 function Show-Menu {
@@ -1504,15 +1759,6 @@ function Show-Menu {
     Write-Centered "╚═╝  ╚═╝╚══════╝╚══════╝╚═════╝ ╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝ "
 
     Write-Centered "===== Alldebrid PowerShell Downloader =====" -ForegroundColor Cyan
-
-    # Vérifier l'API au lancement
-    <#$apiValid = Test-ApiValidity
-
-    if (-not $apiValid) {
-        Write-Host "`nLa clé API semble invalide. Veuillez vérifier la configuration." -ForegroundColor Red
-        Pause
-        exit
-    }#>
 
     Write-Host "`n1. Mode rapide (interface graphique)"
     Write-Host "2. Télécharger un lien unique"
@@ -1787,34 +2033,34 @@ function Show-Menu {
         }
 
         "fine" {
-    Play-AsciiAnimation `
-        -AnimationName "ascciFine" `
-        -JsonUri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/ascii-frames.json" `
-        -NumberOfLoops 2 `
-        -AnimationDelayMs 100
+            Play-AsciiAnimation `
+                -AnimationName "ascciFine" `
+                -JsonUri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/ascii-frames.json" `
+                -NumberOfLoops 2 `
+                -AnimationDelayMs 100
 
-    Show-Menu # Assurez-vous que Show-Menu est défini ailleurs dans votre script
-}
+            Show-Menu
+        }
 
-"kuru" {
-    Play-AsciiAnimation `
-        -AnimationName "kuru" `
-        -JsonUri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/kuru.json" `
-        -NumberOfLoops 2 `
-        -AnimationDelayMs 100
+        "kuru" {
+            Play-AsciiAnimation `
+                -AnimationName "kuru" `
+                -JsonUri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/kuru.json" `
+                -NumberOfLoops 2 `
+                -AnimationDelayMs 100
 
-    Show-Menu # Assurez-vous que Show-Menu est défini ailleurs dans votre script
-}
+            Show-Menu
+        }
 
-"hitler" {
-    Play-AsciiAnimation `
-        -AnimationName "hitler" `
-        -JsonUri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/hitler.json" `
-        -NumberOfLoops 2 `
-        -AnimationDelayMs 100
+        "hitler" {
+            Play-AsciiAnimation `
+                -AnimationName "hitler" `
+                -JsonUri "https://raw.githubusercontent.com/Pooueto/ascci-art/refs/heads/main/hitler.json" `
+                -NumberOfLoops 2 `
+                -AnimationDelayMs 100
 
-    Show-Menu # Assurez-vous que Show-Menu est défini ailleurs dans votre script
-}
+            Show-Menu
+        }
 
         "V" {
         Write-Host $LocalVersion
@@ -1835,12 +2081,16 @@ function Show-Menu {
     }
 }
 
-# ===== DÉMARRAGE DU SCRIPT =====
+
+#  ██╗      █████╗ ██╗   ██╗ ██████╗██╗  ██╗
+#  ██║     ██╔══██╗██║   ██║██╔════╝██║  ██║
+#  ██║     ███████║██║   ██║██║     ███████║
+#  ██║     ██╔══██║██║   ██║██║     ██╔══██║
+#  ███████╗██║  ██║╚██████╔╝╚██████╗██║  ██║
+#  ╚══════╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝
 
 # Initialisation de la configuration
 Initialize-Config
 
 # Lancement du menu principal
 Show-Menu
-
-
