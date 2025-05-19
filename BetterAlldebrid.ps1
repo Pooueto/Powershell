@@ -6,7 +6,7 @@
 #  ╚██████╔╝██║     ██████╔╝██║  ██║   ██║   ███████╗██║  ██║
 #   ╚═════╝ ╚═╝     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
 
-$LocalVersion = "3.0.1"
+$LocalVersion = "3.0.2"
 
 $RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebrid.ps1"
 
@@ -695,7 +695,7 @@ function Show-DownloadDialog {
 
     # Label "Collez vos liens"
     $labelLinks = New-Object System.Windows.Forms.Label
-    $labelLinks.Text = "Collez vos liens (un par ligne) avec SHIFT/ENTER:"
+    $labelLinks.Text = "Collez vos liens (un par ligne) avec CTRL/ENTER:"
     $labelLinks.AutoSize = $true # Ajuste la taille automatiquement
     $innerTableLinks.Controls.Add($labelLinks, 0, 0) # Col 0, Row 0
     $innerTableLinks.SetColumnSpan($labelLinks, 2) # S'étend sur les deux colonnes
