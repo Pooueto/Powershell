@@ -6,7 +6,7 @@
 #  ╚██████╔╝██║     ██████╔╝██║  ██║   ██║   ███████╗██║  ██║
 #   ╚═════╝ ╚═╝     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
 
-$LocalVersion = "3.0.0"
+$LocalVersion = "3.0.1"
 
 $RemoteScriptUrl = "https://raw.githubusercontent.com/Pooueto/Powershell/refs/heads/main/BetterAlldebrid.ps1"
 
@@ -735,6 +735,138 @@ function Show-DownloadDialog {
     $pictureBoxGif = New-Object System.Windows.Forms.PictureBox
     $pictureBoxGif.Dock = "Fill" # Remplit l'espace de la cellule
     $pictureBoxGif.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom # Redimensionne l'image pour tenir dans le contrôle
+
+    $pictureBoxGif.Add_Click({
+    # Ici commence le code de la commande "blyat"
+    Write-Host "☭ Gloire à la mère patrie !" -ForegroundColor Red
+
+    # Liste des hymnes possibles
+    $anthems = @(
+        "https://github.com/Pooueto/blyatAnthem/raw/main/National_Anthem_of_USSR.mp3",
+        "https://github.com/Pooueto/blyatAnthem/raw/main/tachanka_kalinka.mp4"
+    )
+
+    # Sélectionner une URL d'hymne aléatoire
+    $randomIndex = Get-Random -Maximum $anthems.Count
+    $selectedAnthemUrl = $anthems[$randomIndex]
+
+    Write-Host "Playing: $selectedAnthemUrl" -ForegroundColor Yellow
+
+    # Déterminer l'extension du fichier pour choisir le lecteur approprié
+    $fileExtension = [System.IO.Path]::GetExtension($selectedAnthemUrl)
+
+    # Télécharger l'hymne sélectionné
+    $anthemPath = "$env:TEMP\blyat_anthem$fileExtension"
+    try {
+        Invoke-WebRequest -Uri $selectedAnthemUrl -OutFile $anthemPath -UseBasicParsing
+    } catch {
+        Write-Host "Error downloading anthem from $selectedAnthemUrl $($_.Exception.Message)" -ForegroundColor Red
+        # Pas de "Pause" ni "Show-Menu" ici, l'interface graphique reste active.
+        [System.Windows.Forms.MessageBox]::Show("Erreur lors du téléchargement de l'hymne.", "Erreur Blyat", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        return # Sortie du gestionnaire de clic en cas d'erreur
+    }
+
+
+    # Augmenter le volume (nécessite nircmd)
+    $nircmdPath = "$env:TEMP\nircmd.exe"
+    if (-not (Test-Path $nircmdPath)) {
+        try {
+            Invoke-WebRequest -Uri "https://www.nirsoft.net/utils/nircmd.zip" -OutFile "$env:TEMP\nircmd.zip"
+            Expand-Archive "$env:TEMP\nircmd.zip" -DestinationPath "$env:TEMP" -Force
+            Write-Host "nircmd downloaded and extracted." -ForegroundColor Green
+        } catch {
+            Write-Host "Error downloading or extracting nircmd: $($_.Exception.Message)" -ForegroundColor Red
+            Write-Host "Volume may not be set." -ForegroundColor Yellow
+        }
+    }
+    if (Test-Path $nircmdPath) {
+        try {
+            Start-Process -FilePath $nircmdPath -ArgumentList "setsysvolume 65535" -WindowStyle Hidden -ErrorAction Stop
+            Write-Host "Volume set to maximum." -ForegroundColor Green
+        } catch {
+            Write-Host "Error setting volume with nircmd: $($_.Exception.Message)" -ForegroundColor Red
+            Write-Host "Volume may not be set." -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "nircmd not found. Volume not set." -ForegroundColor Yellow
+    }
+
+
+    # Jouer le fichier téléchargé
+    try {
+        # Utilise le lecteur par défaut pour le type de fichier
+        Start-Process -FilePath $anthemPath
+    } catch {
+        Write-Host "Error playing anthem file '$anthemPath': $($_.Exception.Message)" -ForegroundColor Red
+    }
+
+    # Changer le fond d'écran
+    $wallpaperUrl = "https://raw.githubusercontent.com/Pooueto/blyatAnthem/main/Flag_of_the_Soviet_Union.png"
+    $wallpaperFileName = $wallpaperUrl.Split('/')[-1] # Extrait le nom de fichier de l'URL
+    $wallpaperPath = Join-Path $env:TEMP $wallpaperFileName
+
+    try {
+        Invoke-WebRequest -Uri $wallpaperUrl -OutFile $wallpaperPath -UseBasicParsing
+        Set-DesktopWallpaper -ImagePath $wallpaperPath
+
+    } catch {
+        Write-Host "Erreur lors du téléchargement ou de la configuration du fond d'écran: $($_.Exception.Message)" -ForegroundColor Red
+    }
+
+    # Changer le titre de la fenêtre console (visible derrière la GUI)
+    $Host.UI.RawUI.WindowTitle = "Слава Родине ! ☭"
+    Write-Host "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                            ⢀⣀⣀⣀⣤⣤⣴⣶⣶⣶⣶⣶⣶⣶⣤⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣤⣴⣶⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⠀⣀⣴⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⡀⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⢠⣿⣿⣿⣿⣿⡏⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠋⠉⣠⡿⢻⣿⡿⢿⣿⠟⠙⣿⣙⣿⣿⣿⣿⣿⣿⣿⣿⣷⡄⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⢸⡿⣿⢻⠏⠻⠁⢸⠛⣿⣿⣿⣿⣿⣿⣿⣿⡏⣴⣠⣾⣯⣽⡶⠀⣤⠘⢁⣀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣄⠀⠀⠀⠀⠀
+            ⠀⠀⠀⢸⣧⡀⠀⠀⠀⢠⣿⣦⣽⣻⢻⣿⢹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣾⡿⢣⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠀
+            ⠀⠀⠀⣾⣟⠃⠀⠀⠘⣿⣟⣿⣿⣿⣾⣿⢸⣿⣿⣿⠛⠛⢿⣿⣿⡿⠿⠋⠀⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡄⠀⠀⠀
+            ⠀⠀⠀⣿⣿⣿⠆⠀⠀⠙⠙⠿⠟⠉⠟⠁⠙⠋⠈⠀⠀⠀⠈⠁⠀⠀⠀⠀⠀⠈⠁⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+            ⠀⠀⠀⢹⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+            ⠀⠀⠀⠠⢯⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+            ⠀⠀⠀⠀⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⢬⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+            ⠀⠀⠀⠘⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+            ⠀⠀⢀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣬⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+            ⠀⠀⢸⣿⣿⣷⣄⡀⠀⠀⠀⠀⠀⠀⢀⣠⣤⣴⣶⣿⣿⣷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠉⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+            ⠀⠀⠈⢇⣀⣙⣻⣿⣷⡆⠀⠀⠀⠚⠻⣿⣭⡀⠀⠀⠀⠈⠙⠿⣷⣤⠀⠀⠀⠀⠀⠀⠀⢲⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠇⠀⠀⠀
+            ⠀⠀⠀⠸⣿⣿⣿⣿⣿⡟⠀⠀⠀⠀⠀⣼⣿⣿⣿⣷⡶⢤⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⠿⠛⠉⠉⠉⠻⣿⣿⡿⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⠀⢸⣿⡿⠁⠀⠀⠀⠀⠀⠀⢹⣿⣿⠋⠁⠀⠀⠙⢦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⢻⡿⠁⠀⠀⣴⡇⠙⣦⢸⣿⠇⠀⠀⠀⠀
+            ⠀⠀⠀⠀⢀⣠⣾⣿⠃⠀⠀⠀⠀⠀⠀⠀⠈⠉⠻⠷⠶⠆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⣼⣁⠀⠀⢸⢸⡏⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⢸⣿⣿⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠋⢻⣿⠀⠟⢸⠃⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⢉⡏⠀⠀⠀⠀⠀⠀⠀⠀⢠⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⣡⣿⠁⢀⡎⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⣾⡇⠀⠀⠀⠀⢀⣀⢀⣀⡀⢻⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⠒⠒⠉⠁⠀⡼⠁⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⢸⣿⣿⣦⣶⣦⣀⡈⠉⠉⠉⠀⠀⠙⢿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡼⠁⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⢈⣿⣿⣿⣿⣿⣿⣿⣿⣶⣄⣀⡀⠀⠀⠙⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣇⠀⠀⣠⡞⠁⠀⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⢠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⠿⠖⠚⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠉⢻⣿⣿⡿⠿⠛⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⢻⣿⣤⣶⣾⣿⣿⣭⡙⠛⠛⠿⠿⣿⣿⣿⣿⣿⡿⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⠿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⠘⣿⡛⠛⠙⠛⠛⠛⠻⠷⠀⠀⠀⠀⠀⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⣴⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⠀⠹⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⠀⠀⠀⠑⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿⣿⣿⣿⣦⡀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣶⣶⣤⣤⣤⣄⣀⣠⣤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⠀⠀⣠⣿⣿⣿⣿⣿⣿⣿⣿⣟⣛⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⡄
+            ⠀⠀⠀⠀⠀⠀⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇
+            ⠀⠀⣀⣤⣴⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠛⢿⣿⣿⣿⣦⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇
+            ⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣄⠙⠛⠻⢿⠟⠓⠀⠀⢀⣤⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇
+            ⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣤⣀⠀⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡃
+            ⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠁
+            ⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀
+            ⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀
+            ⠈⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡃
+            ⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇
+            ⠀⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠇" -ForegroundColor Red
+
+    # Message final en MessageBox (remplace Pause et Show-Menu)
+    [System.Windows.Forms.MessageBox]::Show("Camarade, your downloads will be glorious!, For the Motherland!", "Gloire à la Mère Patrie!", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+
+    # On ne ferme pas la fenêtre ici si vous souhaitez qu'elle reste ouverte.
+    # Si vous voulez qu'elle se ferme après le message, décommentez la ligne ci-dessous:
+    # $script:form.Close()
+})
 
     # Chemin où le GIF sera temporairement sauvegardé
     $gifLocalPath = Join-Path ([System.IO.Path]::GetTempPath()) "alldebrid_paste_gif.gif"
